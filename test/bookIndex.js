@@ -1,3 +1,5 @@
+// TODO move to ../src or something
+
 const { argString, argUint64 } = require("orbs-client-sdk")
 
 class BookIndex {
@@ -25,8 +27,9 @@ class BookIndex {
             this.name,
             "returnUpdate",
             [argUint64(lastEntry)]
-        )
-        return this.client.sendTransaction(tx)
+		)
+		const result = await this.client.sendTransaction(tx);
+        return JSON.parse(result.outputArguments[0].value);
     }
 
     async getCounter(){

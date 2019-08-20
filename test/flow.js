@@ -51,17 +51,19 @@ describe("the book index", () => {
 	// TODO return empty no update
 	// it("")
 
-	it("should store and retreive the same book", async () => {
+	it("should store and retrieve the same book", async () => {
 		const [bookIndex, _] = await setupContract()
 		const acc = Orbs.createAccount()
 		const exampleJsonBook = "[" + fs.readFileSync(`${__dirname}/books/9300.json`).toString() + "]"
 		const receipt = await bookIndex.dumpBooks(exampleJsonBook)
 
 		const result = await bookIndex.returnUpdate(0)
-		expect(result.outputArguments[0].value).to.be(exampleJsonBook.toString())
+		const e = JSON.parse(exampleJsonBook)[0];
+		e.ID = 0;
+		expect(result[0]).to.be.eql(e);
 	})
 
-	it("should dump multiple books and retreive the same", async () => {
+	it("should dump multiple books and retrieve the same", async () => {
 		const [bookIndex, _] = await setupContract()
 		const acc = Orbs.createAccount()
 		const two = 2
@@ -75,7 +77,9 @@ describe("the book index", () => {
 		expect(Number(counter.outputArguments[0].value)).to.be(two)
 
 		const ret = await bookIndex.returnUpdate(0)
-		expect(ret.outputArguments[0].value).to.be(exampleJsonBooks)
+		const e = JSON.parse(exampleJsonBooks)[0];
+		e.ID = 0;
+		expect(ret[0]).to.be.eql(e)
 	})
 
 	it("should dump books even if it is not empty and retreive the same", async () => {

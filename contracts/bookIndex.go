@@ -10,10 +10,11 @@ import (
 // type declarations for JSON parsing
 type FileFormat struct {
 	Link string
-	Format interface{}
+	Format interface{} // TODO should be []string (make sure that RDF is parsed to uniform JSON representation)
 }
 
 type book struct {
+	ID uint64
 	Author string
 	FileFormats []FileFormat
 	Issued string
@@ -38,96 +39,33 @@ func _init(){
 }
 
 // returns the number of books in the registry, it is also the counter
+// TODO rename to totalBooks
 func getCounter() uint64 {
 	return state.ReadUint64(COUNTER_KEY)
 }
 
-// makes sure the json is a valid book json
-func _validBook(payload string) bool {
-	var books []book
-	
-	// make sure it is a json array
-	if (payload[0] != '[') || (payload[len(payload)-1] != ']') {
-		return false
-	}
-
-	// get the object
-	err := json.Unmarshal([]byte(payload), &books)
-	if err != nil{
-		return false
-	}
-
-	// make sure all fileds are not empty
-	for _, v := range books {
-		if v.Author == "" {
-			return false
-		}
-		if v.FileFormats == nil {
-			return false
-		}
-		if v.Issued == ""{
-			return false
-		}
-		if v.Language == "" {
-			return false
-		}
-		if v.Link == "" {
-			return false
-		}
-		if v.Publisher == "" {
-			return false
-		}
-		if v.Rights == "" {
-			return false
-		}
-		if v.Subjects == nil {
-			return false
-		}
-		if v.Title == ""{
-			return false
-		}
-	}
-	return true
-}
-
-// insert to the contract a new book
-func _updateBook(b book){
-	// get the last address with a book
-	counter := state.ReadUint64(COUNTER_KEY)
-
-	// write to that address the JSON format of the book
-	payload, err := json.Marshal(b)
-	if err != nil {
-		panic("error converting object to json")
-	}
-	state.WriteBytes([]byte(strconv.FormatUint(counter, 10)), payload)
-	
-	// increase the total number of books by 1, will also increase our next address by one	
-	state.WriteUint64(COUNTER_KEY, counter + 1)
-}
-
 // TODO should require some kind of auth
 // dump multiple books to the contract's storage
+// TODO rename to registerBooks
 func dumpBooks(payload string){
 	var books []book
-
-	if !_validBook(payload){
-		panic("not a valid json array of books")
-	}
-
 	err := json.Unmarshal([]byte(payload), &books)
-	
 	if err != nil{
 		panic(err)
 	}
+
 	
-	for _, v := range(books) {
-	 	_updateBook(v)
+	for _, b := range books {
+		if !_isValidBook(b) {
+			panic("not a valid json array of books")
+		}
+	 	_updateBook(b)
 	}
 }
 
 //get all new book entries since some given entry
-// TODO lastEntry, limit
+// TODO start, limit
+// TODO rename to getBooks
 func returnUpdate(lastEntry uint64) string {
 	// make sure the server is requesting valid adresses
 	counter := state.ReadUint64(COUNTER_KEY)
@@ -162,6 +100,7 @@ func returnUpdate(lastEntry uint64) string {
 	return string(ret)
 }
 
+// TODO make public
 func _getBook(i uint64) (b book) {
 	rawBytes := state.ReadBytes(_bookId(i))
 	println("retrieving", _bookId(i))
@@ -175,4 +114,54 @@ func _getBook(i uint64) (b book) {
 
 func _bookId(i uint64) []byte {
 	return []byte(strconv.FormatUint(i, 10))
+}
+
+// insert to the contract a new book
+// TODO rename to _insertBook
+func _updateBook(b book){
+	// get the last address with a book
+	counter := state.ReadUint64(COUNTER_KEY)
+	b.ID = counter
+
+	// write to that address the JSON format of the book
+	payload, err := json.Marshal(b)
+	if err != nil {
+		panic("error converting object to json")
+	}
+	state.WriteBytes([]byte(strconv.FormatUint(counter, 10)), payload)
+	
+	// increase the total number of books by 1, will also increase our next address by one	
+	state.WriteUint64(COUNTER_KEY, counter + 1)
+}
+
+// makes sure the json is a valid book json
+func _isValidBook(v book) bool {
+	if v.Author == "" {
+		return false
+	}
+	if v.FileFormats == nil {
+		return false
+	}
+	if v.Issued == ""{
+		return false
+	}
+	if v.Language == "" {
+		return false
+	}
+	if v.Link == "" {
+		return false
+	}
+	if v.Publisher == "" {
+		return false
+	}
+	if v.Rights == "" {
+		return false
+	}
+	if v.Subjects == nil {
+		return false
+	}
+	if v.Title == ""{
+		return false
+	}
+	return true
 }
