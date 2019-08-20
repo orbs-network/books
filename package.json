@@ -1,0 +1,26 @@
+{
+  "name": "opdstest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "chai": "^4.2.0",
+    "expect.js": "^0.3.1",
+    "knex": "^0.19.2",
+    "opds": "^2.0.0",
+    "orbs-client-sdk": "^1.1.1",
+    "sqlite3": "^4.1.0",
+    "xml2json": "^0.11.2"
+  },
+  "devDependencies": {
+    "mocha": "^6.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC"
+}
