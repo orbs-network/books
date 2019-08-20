@@ -26,7 +26,7 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(dumpBooks, returnUpdate, getCounter)
+var PUBLIC = sdk.Export(registerBooks, getBooks, getBook, totalBooks)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
@@ -39,53 +39,52 @@ func _init(){
 }
 
 // returns the number of books in the registry, it is also the counter
-// TODO rename to totalBooks
-func getCounter() uint64 {
+func totalBooks() uint64 {
 	return state.ReadUint64(COUNTER_KEY)
 }
 
 // TODO should require some kind of auth
 // dump multiple books to the contract's storage
-// TODO rename to registerBooks
-func dumpBooks(payload string){
+// TODO return a list of IDs that were added
+func registerBooks(payload string){
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
 	if err != nil{
 		panic(err)
 	}
 
-	
-	for _, b := range books {
+	var ret []uint64
+	for i, b := range books {
 		if !_isValidBook(b) {
 			panic("not a valid json array of books")
 		}
-	 	_updateBook(b)
+		_insertBook(b)
+		ret = append(ret, uint64(i))
 	}
 }
 
 //get all new book entries since some given entry
 // TODO start, limit
-// TODO rename to getBooks
-func returnUpdate(lastEntry uint64) string {
+func getBooks(start uint64, limit uint64) string {
 	// make sure the server is requesting valid adresses
 	counter := state.ReadUint64(COUNTER_KEY)
-	if lastEntry > counter {
+	if start > counter {
 		// panic if the address requested is invalid
 		panic("the last entry the server counter must be lower than the current number of books")
 	}
 
 	// no new books were added
-	if lastEntry == counter{
+	if start == counter{
 		return ""
 	}
 
 	// init all the books
 	var books []book
 	var ret []byte
-	for i := lastEntry; i < counter; i++ {
+	for i := uint64(0); i < limit && i < counter; i++ {
 		// read raw book json and append it to
 		// TODO get rid of corrupt json data
-		a := _getBook(uint64(i))
+		a := getBook(uint64(i + start))
 		// create an object array
 		books = append(books, a)
 	}
@@ -100,10 +99,10 @@ func returnUpdate(lastEntry uint64) string {
 	return string(ret)
 }
 
-// TODO make public
-func _getBook(i uint64) (b book) {
+// returns a single book
+func getBook(i uint64) (b book) {
 	rawBytes := state.ReadBytes(_bookId(i))
-	println("retrieving", _bookId(i))
+
 	err := json.Unmarshal(rawBytes, &b)
 	if err != nil{
 		panic(err)
@@ -117,8 +116,7 @@ func _bookId(i uint64) []byte {
 }
 
 // insert to the contract a new book
-// TODO rename to _insertBook
-func _updateBook(b book){
+func _insertBook(b book){
 	// get the last address with a book
 	counter := state.ReadUint64(COUNTER_KEY)
 	b.ID = counter
