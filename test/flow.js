@@ -170,4 +170,20 @@ describe("the book index", () => {
 		const result = await bookIndex.totalBooks();
 		expect(result).to.be(two);
 	});
+
+	it("getOwner returns the deployer", async () => {
+		const [bookIndex, _] = await setupContract();
+		const result = await bookIndex.getOwner();
+
+		expect(result).to.be.eql((bookIndex.account.address).toLowerCase());
+	});
+
+	it("register books restricts registring", async () => {
+		const [bookIndex, _] = await setupContract();
+		
+		bookIndex.account = Orbs.createAccount();
+		const res = await bookIndex.registerBooks(getExampleBook(9300));
+		
+		expect(res).to.be.eql(Error("this function is restricted!"))		
+	});
 });

@@ -7,6 +7,24 @@ class BookIndex {
 		this.client = client;
 	}
 
+	async getOwner(){
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"getOwner",
+			[]
+		);
+		
+		const result = await this.client.sendTransaction(tx);
+
+		if(result.executionResult != "SUCCESS"){
+			return new Error(result.executionResult);
+		}
+
+		return "0x" + result.outputArguments[0].value.toString('hex');
+	}
+
 	async registerBooks(books) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,

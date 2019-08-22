@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1"
 	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1/state"
+	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1/address"
 	"strconv"
 	"encoding/json"
+	"bytes"
 )
 
 // type declarations for JSON parsing
@@ -26,13 +28,18 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks)
+var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
+var OWNER_KEY = []byte("owner")
 
 func _init(){
+	state.WriteBytes(OWNER_KEY, address.GetSignerAddress())
+}
 
+func getOwner() []byte {
+	return state.ReadBytes(OWNER_KEY)
 }
 
 // returns the number of books in the registry, it is also the counter
@@ -40,9 +47,10 @@ func totalBooks() uint64 {
 	return state.ReadUint64(COUNTER_KEY)
 }
 
-// TODO should require some kind of auth
 // register multiple books to the contract's storage
 func registerBooks(payload string) string {
+	_restricted()
+
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
 	if err != nil{
@@ -102,6 +110,12 @@ func getBooks(start uint64, limit uint64) string {
 
 	// return the new json array of books that were added
 	return string(ret)
+}
+
+func _restricted(){
+	if !bytes.Equal(address.GetSignerAddress(), getOwner()) {
+		panic("this function is restricted!")
+	}
 }
 
 // returns a single book
