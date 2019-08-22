@@ -3,7 +3,7 @@
 
 const fs = require("fs")
 const xmlParser = require("xml2json")
-console.log(toJson("/Users/gil/Downloads/cache/epub/9300/pg9300.rdf"))
+console.log(toJson("/Users/gil/Downloads/cache/epub/9406/pg9406.rdf"))
 // returns the json representation of an rdf file from the gutenberg project
 // if the file does not exist it returns null
 function toJson(fileName){
@@ -46,7 +46,7 @@ function toJson(fileName){
             
             // removing more bloat
             if(book.FileFormats[i].Format.length == undefined){
-                book.FileFormats[i].Format = book.FileFormats[i].Format.Description.value["$t"]
+                book.FileFormats[i].Format = [book.FileFormats[i].Format.Description.value["$t"]]
                 continue
             }
     
@@ -58,7 +58,7 @@ function toJson(fileName){
     
         // more bloat removal
         if(book.Subjects.length == undefined){
-            book.Subjects.Description.value["$t"]
+            book.Subjects = [book.Subjects.Description.value["$t"]]
         }
     
         for(i = 0; i < book.Subjects.length; i++){

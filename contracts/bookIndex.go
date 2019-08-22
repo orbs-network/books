@@ -10,7 +10,7 @@ import (
 // type declarations for JSON parsing
 type FileFormat struct {
 	Link string
-	Format interface{} // TODO should be []string (make sure that RDF is parsed to uniform JSON representation)
+	Format []string
 }
 
 type book struct {
