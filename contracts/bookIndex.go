@@ -26,7 +26,7 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(registerBooks, getBooks, getBook, totalBooks)
+var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
@@ -89,7 +89,7 @@ func getBooks(start uint64, limit uint64) string {
 	for i := uint64(0); i < limit && i < counter; i++ {
 		// read raw book json and append it to
 		// TODO get rid of corrupt json data
-		a := getBook(uint64(i + start))
+		a := _getBook(uint64(i + start))
 		// create an object array
 		books = append(books, a)
 	}
@@ -105,7 +105,7 @@ func getBooks(start uint64, limit uint64) string {
 }
 
 // returns a single book
-func getBook(i uint64) (b book) {
+func _getBook(i uint64) (b book) {
 	rawBytes := state.ReadBytes(_bookId(i))
 
 	err := json.Unmarshal(rawBytes, &b)

@@ -89,7 +89,7 @@ describe("the book index", () => {
     expect(result[0]).to.be.eql(exampleBookWithId);
   });
 
-  it("should dump multiple books and retrieve the same", async () => {
+  it("should register multiple books and retrieve the same", async () => {
     const [bookIndex, _] = await setupContract();
     const two = 2;
 
@@ -107,7 +107,7 @@ describe("the book index", () => {
     expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
   });
 
-  it("should dump books even if it is not empty and retreive the same", async () => {
+  it("should register books even if it is not empty and retreive the same", async () => {
     const [bookIndex, _] = await setupContract();
     const two = 2;
 
