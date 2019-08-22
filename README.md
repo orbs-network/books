@@ -102,6 +102,14 @@ The `BookIndex.getBooks()` function takes in as parameters:
 and returns:
 * an array of book objects that were retreived.
 
+---
+
+Note: if you request to download a book that does not exist both functions will return
+
+```js
+Error("no such book id")
+```
+
 ### Getting the total number of books that were registered
 
 To get the total number of books that were registered you can use `BookIndex.totalBooks()`:
@@ -109,6 +117,11 @@ To get the total number of books that were registered you can use `BookIndex.tot
 ```js
 const totalBooks = await bookIndex.totalBooks()
 ```
+
+### Errors
+
+All functions will return an `Error` if the Orbs transaction will return an error,
+this can be caused because the contract was not deployed or the transaction was not executed successfuly.
 
 ## Testing this project
 
