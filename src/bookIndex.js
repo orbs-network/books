@@ -1,6 +1,5 @@
 const { argString, argUint64 } = require("orbs-client-sdk")
 
-// TODO handle errors
 class BookIndex {
     constructor(account, client){
         this.name = `bookIndex.${new Date().getTime()}`
@@ -16,11 +15,14 @@ class BookIndex {
             "registerBooks",
             [argString(JSON.stringify(books))]
 		)
+		
 		const result = await this.client.sendTransaction(tx)
+		
 		if(result.executionResult != "SUCCESS"){
 			return new Error("transaction did not succeed!")
 		}
-        return JSON.parse(result.outputArguments[0].value)
+		
+		return JSON.parse(result.outputArguments[0].value)
     }
 
     async getBooks(start, limit){
@@ -31,11 +33,18 @@ class BookIndex {
             "getBooks",
             [argUint64(start), argUint64(limit)]
 		)
+		
 		const result = await this.client.sendTransaction(tx)
+
+		if(result.executionResult != "SUCCESS"){
+			return new Error("transaction did not succeed!")
+		}
+		
 		if(result.outputArguments[0].value == ""){
 			return null
 		}
-        return JSON.parse(result.outputArguments[0].value)
+
+		return JSON.parse(result.outputArguments[0].value)
 	}
 
 	async getBook(id){
@@ -46,7 +55,13 @@ class BookIndex {
 			"getBook",
 			[argUint64(id)]
 		)
+
 		const result = await this.client.sendTransaction(tx)
+
+		if(result.executionResult != "SUCCESS"){
+			return new Error("transaction did not succeed!")
+		}
+
 		return JSON.parse(result.outputArguments[0].value)
 	}
 
@@ -57,8 +72,14 @@ class BookIndex {
             this.name,
             "totalBooks",
             []
-        )
+		)
+		
 		const result = await this.client.sendTransaction(tx)
+		
+		if(result.executionResult != "SUCCESS"){
+			return new Error("transaction did not succeed!")
+		}
+		
 		return Number(result.outputArguments[0].value)
     }
 }
