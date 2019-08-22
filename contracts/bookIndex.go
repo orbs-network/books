@@ -72,10 +72,10 @@ func registerBooks(payload string) string {
 // get all new book entries since some given entry
 func getBooks(start uint64, limit uint64) string {
 	// make sure the server is requesting valid adresses
-	counter := state.ReadUint64(COUNTER_KEY)
+	counter := totalBooks()
 	if start > counter {
 		// panic if the address requested is invalid
-		panic("the last entry the server counter must be lower than the current number of books")
+		panic("no such book id")
 	}
 
 	// no new books were added

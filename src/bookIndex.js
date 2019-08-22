@@ -19,7 +19,7 @@ class BookIndex {
     const result = await this.client.sendTransaction(tx);
 
     if (result.executionResult != "SUCCESS") {
-      return new Error("transaction did not succeed!");
+      return new Error(result.outputArguments[0].value);
     }
 
     return JSON.parse(result.outputArguments[0].value);
@@ -37,7 +37,10 @@ class BookIndex {
     const result = await this.client.sendTransaction(tx);
 
     if (result.executionResult != "SUCCESS") {
-      return new Error("transaction did not succeed!");
+	  if(result.outputArguments[0].value == "no such book id"){
+	    return new Error("no such book id")
+	  }
+	  return new Error(result.outputArguments[0].value);
     }
 
     if (result.outputArguments[0].value == "") {
@@ -52,15 +55,22 @@ class BookIndex {
       this.account.publicKey,
       this.account.privateKey,
       this.name,
-      "getBook",
-      [Orbs.argUint64(id)]
+      "getBooks",
+      [Orbs.argUint64(id), Orbs.argUint64(1)]
     );
 
     const result = await this.client.sendTransaction(tx);
 
-    if (result.executionResult != "SUCCESS") {
-      return new Error("transaction did not succeed!");
-    }
+	if (result.executionResult != "SUCCESS") {
+	  if(result.outputArguments[0].value == "no such book id"){
+		  return new Error("no such book id")
+	  }
+      return new Error(result.outputArguments[0].value);
+	}
+	
+	if (result.outputArguments[0].value == "") {
+		return null;
+	}
 
     return JSON.parse(result.outputArguments[0].value);
   }
@@ -77,7 +87,7 @@ class BookIndex {
     const result = await this.client.sendTransaction(tx);
 
     if (result.executionResult != "SUCCESS") {
-      return new Error("transaction did not succeed!");
+	  return new Error(result.outputArguments[0].value);     
     }
 
     return Number(result.outputArguments[0].value);

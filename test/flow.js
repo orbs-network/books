@@ -89,6 +89,17 @@ describe("the book index", () => {
     expect(result[0]).to.be.eql(exampleBookWithId);
   });
 
+  it("should retreive a single book", async () => {
+	const [bookIndex, _] = await setupContract();
+    const books = await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)]);
+
+	const result1 = await bookIndex.getBook(0)
+	expect(result1[0]).to.be.eql(getExampleBookWithId(9300, 0))
+
+	const result2 = await bookIndex.getBook(1)
+	expect(result2[0]).to.be.eql(getExampleBookWithId(9406, 1))
+  })
+
   it("should register multiple books and retrieve the same", async () => {
     const [bookIndex, _] = await setupContract();
     const two = 2;
@@ -106,6 +117,14 @@ describe("the book index", () => {
     expect(ret[0]).to.be.eql(getExampleBookWithId(9300, 0));
     expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
   });
+
+  it("should return error if the id is not registered", async () => {
+	const [bookIndex, _] = await setupContract();
+    const books = await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)]);
+
+	const result = await bookIndex.getBook(3)
+	expect(result).to.be.eql(Error("no such book id"))
+  })
 
   it("should register books even if it is not empty and retreive the same", async () => {
     const [bookIndex, _] = await setupContract();
