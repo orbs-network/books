@@ -43,25 +43,28 @@ describe("the book index", () => {
 	it("should store a valid book", async () => {
 		const [bookIndex, _] = await setupContract()
 
-		const receipt = await bookIndex.registerBooks([getExampleBook(9300)])
-		expect(receipt.executionResult).to.be("SUCCESS")
+		const result = await bookIndex.registerBooks([getExampleBook(9300)])
+		expect(result).to.be.eql([0])
 	})
 
 	it("should throw when an invalid json object is sent", async () => {
 		const [bookIndex, _] = await setupContract()
 
-		const receipt = await bookIndex.registerBooks([getExampleBook(-1)])
-		expect(receipt.executionResult).to.be("ERROR_SMART_CONTRACT")
+		const result = await bookIndex.registerBooks([getExampleBook(-1)])
+		expect(result).to.be.a(Error)
 	})
 
-	// TODO return empty no update
-	// it("")
-
-	// TODO check registerBooks() returns correct ID's
+	it("should return no books when there are no new ones", async () => {
+		const [bookIndex, _] = await setupContract()
+		const books = await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)])
+		
+		const result = await bookIndex.getBooks(2, 2)
+		expect(result).to.be(null)
+	})
 
 	it("should store and retrieve the same book", async () => {
 		const [bookIndex, _] = await setupContract()
-		const receipt = await bookIndex.registerBooks([getExampleBook(9300)])
+		const books = await bookIndex.registerBooks([getExampleBook(9300)])
 
 		const result = await bookIndex.getBooks(0, 1)
 		const exampleBookWithId = getExampleBookWithId(9300, 0)
@@ -72,11 +75,11 @@ describe("the book index", () => {
 		const [bookIndex, _] = await setupContract()
 		const two = 2
 		
-		const receipt = await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)])
-		expect(receipt.executionResult).to.be("SUCCESS")
+		const result = await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)])
+		expect(result).to.be.eql([0, 1])
 
 		const counter = await bookIndex.totalBooks()
-		expect(Number(counter.outputArguments[0].value)).to.be(two)
+		expect(counter).to.be(two)
 
 		const ret = await bookIndex.getBooks(0, 2)
 		expect(ret[0]).to.be.eql(getExampleBookWithId(9300, 0))
@@ -87,12 +90,14 @@ describe("the book index", () => {
 		const [bookIndex, _] = await setupContract()
 		const two = 2
 
-		await bookIndex.registerBooks([getExampleBook(9300)])
-		const result = await bookIndex.registerBooks([getExampleBook(9406)])
-		expect(result.executionResult).to.be("SUCCESS")
+		const result1 = await bookIndex.registerBooks([getExampleBook(9300)])
+		expect(result1).to.be.eql([0])
+		
+		const result2 = await bookIndex.registerBooks([getExampleBook(9406)])
+		expect(result2).to.be.eql([1])
 
 		const counter = await bookIndex.totalBooks()
-		expect(Number(counter.outputArguments[0].value)).to.be(two)
+		expect(counter).to.be(two)
 
 		const ret = await bookIndex.getBooks(0, 2)
 		expect(ret[0]).to.be.eql(getExampleBookWithId(9300, 0))
@@ -104,7 +109,7 @@ describe("the book index", () => {
 		const zero = 0
 
 		const result = await bookIndex.totalBooks()
-		expect(Number(result.outputArguments[0].value)).to.be(zero)
+		expect(result).to.be(zero)
 	})
 
 	it("counts the number of books in the registry and returns the correct number", async () => {
@@ -113,6 +118,6 @@ describe("the book index", () => {
 		const two = 2
 
 		const result = await bookIndex.totalBooks()
-		expect(Number(result.outputArguments[0].value)).to.be(two)
+		expect(result).to.be(two)
 	})
 })

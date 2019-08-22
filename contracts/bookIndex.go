@@ -31,11 +31,8 @@ var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
 
-// TODO
-// dumpBook() should require some kind of auth
-
 func _init(){
-	state.WriteUint64(COUNTER_KEY, 0)
+
 }
 
 // returns the number of books in the registry, it is also the counter
@@ -44,14 +41,15 @@ func totalBooks() uint64 {
 }
 
 // TODO should require some kind of auth
-// dump multiple books to the contract's storage
-// TODO return a list of IDs that were added
-func registerBooks(payload string){
+// register multiple books to the contract's storage
+func registerBooks(payload string) string {
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
 	if err != nil{
 		panic(err)
 	}
+
+	initTotalBooks := totalBooks()
 
 	var ret []uint64
 	for i, b := range books {
@@ -59,12 +57,19 @@ func registerBooks(payload string){
 			panic("not a valid json array of books")
 		}
 		_insertBook(b)
-		ret = append(ret, uint64(i))
+		ret = append(ret, uint64(i) + initTotalBooks)
 	}
+
+	// return a json array because []uint64 is not supported
+	booksRet, err := json.Marshal(ret)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(booksRet)
 }
 
-//get all new book entries since some given entry
-// TODO start, limit
+// get all new book entries since some given entry
 func getBooks(start uint64, limit uint64) string {
 	// make sure the server is requesting valid adresses
 	counter := state.ReadUint64(COUNTER_KEY)
