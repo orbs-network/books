@@ -1,4 +1,4 @@
-const { argString, argUint64 } = require("orbs-client-sdk");
+const Orbs = require("orbs-client-sdk");
 
 class BookIndex {
   constructor(account, client, name) {
@@ -6,14 +6,14 @@ class BookIndex {
     this.account = account;
     this.client = client;
   }
-
+  
   async registerBooks(books) {
     const [tx, txId] = this.client.createTransaction(
       this.account.publicKey,
       this.account.privateKey,
       this.name,
       "registerBooks",
-      [argString(JSON.stringify(books))]
+      [Orbs.argString(JSON.stringify(books))]
     );
 
     const result = await this.client.sendTransaction(tx);
@@ -31,7 +31,7 @@ class BookIndex {
       this.account.privateKey,
       this.name,
       "getBooks",
-      [argUint64(start), argUint64(limit)]
+      [Orbs.argUint64(start), Orbs.argUint64(limit)]
     );
 
     const result = await this.client.sendTransaction(tx);
@@ -53,7 +53,7 @@ class BookIndex {
       this.account.privateKey,
       this.name,
       "getBook",
-      [argUint64(id)]
+      [Orbs.argUint64(id)]
     );
 
     const result = await this.client.sendTransaction(tx);
