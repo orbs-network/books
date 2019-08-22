@@ -28,7 +28,7 @@ async function deploy(acc, code, contractName) {
 
 async function setupContract() {
   const acc = Orbs.createAccount();
-  const bookIndex = new BookIndex(acc, client);
+  const bookIndex = new BookIndex(acc, client, `bookIndex.${new Date().getTime()}`);
   const deployResp = await deploy(
     acc,
     getContractCode("bookIndex.go"),

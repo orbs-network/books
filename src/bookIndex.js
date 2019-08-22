@@ -1,8 +1,8 @@
 const { argString, argUint64 } = require("orbs-client-sdk");
 
 class BookIndex {
-  constructor(account, client) {
-    this.name = `bookIndex.${new Date().getTime()}`;
+  constructor(account, client, name) {
+    this.name = name;
     this.account = account;
     this.client = client;
   }
