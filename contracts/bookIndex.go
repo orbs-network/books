@@ -28,7 +28,7 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner)
+var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner, changeOwner)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
@@ -38,8 +38,16 @@ func _init(){
 	state.WriteBytes(OWNER_KEY, address.GetSignerAddress())
 }
 
+// return the current owner's address
 func getOwner() []byte {
 	return state.ReadBytes(OWNER_KEY)
+}
+
+// changes the current owner's address
+func changeOwner(newOwner []byte){
+	_restricted()
+	address.ValidateAddress(newOwner)
+	state.WriteBytes(OWNER_KEY, newOwner)
 }
 
 // returns the number of books in the registry, it is also the counter
@@ -59,6 +67,7 @@ func registerBooks(payload string) string {
 
 	initTotalBooks := totalBooks()
 
+	// insert book one by one
 	var ret []uint64
 	for i, b := range books {
 		if !_isValidBook(b) {
@@ -130,6 +139,7 @@ func _getBook(i uint64) (b book) {
 	return
 }
 
+// returns a byte representation of a uint64
 func _bookId(i uint64) []byte {
 	return []byte(strconv.FormatUint(i, 10))
 }
