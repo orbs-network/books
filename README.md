@@ -38,7 +38,7 @@ The `BookIndex` constructor initiates the smart contract client (it does not dep
 
 ### Registering new books
 
-The contract will only register nwe books that comply with the JSON format of the contract struct `book`.
+The contract will only register new books that comply with the JSON format of the contract struct `book`.
 
 Here is the structure of a valid book JSON format.
 ```js
@@ -48,6 +48,7 @@ Here is the structure of a valid book JSON format.
 		{
 			"Link": ...,
 			"Format": [...]
+		}
 	],
 	"Issued": ...,
 	"Language": ...,
@@ -75,32 +76,32 @@ The `BookIndex.registerBooks()` function takes in as parameters:
 and returns:
 * an array of book ids that were added to the smart contract's state.
 
-### Retreiving books' metadata
+### Retrieving books' metadata
 
-To retreive a single books' metadata you can use `bookIndex.getBook()`:
+To retrieve a single books' metadata you can use `bookIndex.getBook()`:
 
 ```js
 const books = await bookIndex.getBook(id)
 ```
 
 The `BookIndex.getBook()` function takes in as parameters:
-* `id`: the id of the book to retreive
+* `id`: the id of the book to retrieve
 
 and returns:
-* a book object that was retreived
+* a book object that was retrieved
 
-To retreive multiple books' metadata you can use `BookIndex.getBooks()`:
+To retrieve multiple books' metadata you can use `BookIndex.getBooks()`:
 
 ```js
 const books = await bookIndex.getBooks(start, limit)
 ```
 
 The `BookIndex.getBooks()` function takes in as parameters:
-* `start`: the bookId from which to start retreive book objects.
-* `limit`: the maximum number of books to retreive.
+* `start`: the bookId from which to start retrieve book objects.
+* `limit`: the maximum number of books to retrieve.
 
 and returns:
-* an array of book objects that were retreived.
+* an array of book objects that were retrieved.
 
 ---
 
