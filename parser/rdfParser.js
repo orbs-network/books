@@ -29,11 +29,13 @@ function toJson(rdf) {
 		Title: data["title"]
 	};
 
-	book.Publishers = [{
-		Name: data["publisher"],
-		MetadataLink: "https://www.gutenberg.org/" + data["about"],
-		FileVersions: data["hasFormat"]
-	}]
+	book.Publishers = [
+		{
+			Name: data["publisher"],
+			MetadataLink: "https://www.gutenberg.org/" + data["about"],
+			FileVersions: data["hasFormat"]
+		}
+	];
 
 	// remove file format rdf and xml bloat
 	for (i = 0; i < book.Publishers[0].FileVersions.length; i++) {

@@ -41,7 +41,7 @@ class BookIndex {
 		}
 	}
 
-	async addCurator(newCurator){
+	async addCurator(newCurator) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,
 			this.account.privateKey,
@@ -50,14 +50,14 @@ class BookIndex {
 			[Orbs.argAddress(newCurator)]
 		);
 
-		const result = await this.client.sendTransaction(tx)
-		
-		if(result.executionResult != "SUCCESS"){
-			return new Error(result.outputArguments[0].value)
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
 		}
 	}
 
-	async removeCurator(curator){
+	async removeCurator(curator) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,
 			this.account.privateKey,
@@ -66,10 +66,10 @@ class BookIndex {
 			[Orbs.argAddress(curator)]
 		);
 
-		const result = await this.client.sendTransaction(tx)
-		
-		if(result.executionResult != "SUCCESS"){
-			return new Error(result.outputArguments[0].value)
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
 		}
 	}
 

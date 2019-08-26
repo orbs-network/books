@@ -202,7 +202,7 @@ describe("the book index", () => {
 		const [bookIndex, _] = await setupContract();
 
 		bookIndex.account = Orbs.createAccount();
-		const reslt= await bookIndex.registerBooks(getExampleBook(9300));
+		const result = await bookIndex.registerBooks(getExampleBook(9300));
 
 		expect(result).to.be.eql(Error("this function is restricted!"));
 	});
@@ -212,21 +212,21 @@ describe("the book index", () => {
 
 		curator = Orbs.createAccount();
 		const result = await bookIndex.addCurator(curator.address);
-		expect(result).to.not.be.an(Error)
+		expect(result).to.not.be.an(Error);
 
-		const result1 = await bookIndex.removeCurator(curator.address)
-		expect(result).to.not.be.an(Error)
-	})
+		const result1 = await bookIndex.removeCurator(curator.address);
+		expect(result).to.not.be.an(Error);
+	});
 
-	it.only("owner restricts curator functions", async () => {
+	it("owner restricts curator functions", async () => {
 		const [bookIndex, _] = await setupContract();
 
-		curator = Orbs.createAccount()
+		curator = Orbs.createAccount();
 		bookIndex.account = Orbs.createAccount();
 		const result = await bookIndex.addCurator(curator.address);
-		expect(result).to.be.an(Error)
+		expect(result).to.be.an(Error);
 
-		const result1 = await bookIndex.removeCurator(curator.address)
-		expect(result).to.be.an(Error)
-	})
+		const result1 = await bookIndex.removeCurator(curator.address);
+		expect(result).to.be.an(Error);
+	});
 });
