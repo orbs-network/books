@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1"
 	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1/state"
+	"github.com/orbs-network/orbs-contract-sdk/go/sdk/v1/address"
 	"strconv"
 	"encoding/json"
+	"bytes"
 )
 
 // type declarations for JSON parsing
@@ -34,15 +36,26 @@ type book struct {
 	Title string
 }
 
-// TODO add addVersion, 
-
-var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks)
+var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner, changeOwner)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
+var OWNER_KEY = []byte("owner")
 
 func _init(){
+	state.WriteBytes(OWNER_KEY, address.GetSignerAddress())
+}
 
+// return the current owner's address
+func getOwner() []byte {
+	return state.ReadBytes(OWNER_KEY)
+}
+
+// changes the current owner's address
+func changeOwner(newOwner []byte){
+	_restricted()
+	address.ValidateAddress(newOwner)
+	state.WriteBytes(OWNER_KEY, newOwner)
 }
 
 // returns the number of books in the registry, it is also the counter
@@ -50,9 +63,10 @@ func totalBooks() uint64 {
 	return state.ReadUint64(COUNTER_KEY)
 }
 
-// TODO should require some kind of auth
 // register multiple books to the contract's storage
 func registerBooks(payload string) string {
+	_restricted()
+
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
 	if err != nil{
@@ -61,6 +75,7 @@ func registerBooks(payload string) string {
 
 	initTotalBooks := totalBooks()
 
+	// insert book one by one
 	var ret []uint64
 	for i, b := range books {
 		if !_isValidBook(b) {
@@ -114,6 +129,12 @@ func getBooks(start uint64, limit uint64) string {
 	return string(ret)
 }
 
+func _restricted(){
+	if !bytes.Equal(address.GetSignerAddress(), getOwner()) {
+		panic("this function is restricted!")
+	}
+}
+
 // returns a single book
 func _getBook(i uint64) (b book) {
 	rawBytes := state.ReadBytes(_bookId(i))
@@ -126,6 +147,7 @@ func _getBook(i uint64) (b book) {
 	return
 }
 
+// returns a byte representation of a uint64
 func _bookId(i uint64) []byte {
 	return []byte(strconv.FormatUint(i, 10))
 }

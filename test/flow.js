@@ -170,4 +170,40 @@ describe("the book index", () => {
 		const result = await bookIndex.totalBooks();
 		expect(result).to.be(two);
 	});
+
+	it("getOwner returns the deployer", async () => {
+		const [bookIndex, _] = await setupContract();
+		const result = await bookIndex.getOwner();
+
+		expect(result).to.be.eql(bookIndex.account.address.toLowerCase());
+	});
+
+	it("should change owner", async () => {
+		const [bookIndex, _] = await setupContract();
+		acc = Orbs.createAccount();
+
+		const result = await bookIndex.changeOwner(acc.address);
+		expect(result).to.not.be.an(Error);
+
+		const owner = await bookIndex.getOwner();
+		expect(owner).to.be(acc.address.toLowerCase());
+	});
+
+	it("should block access on changeOwner", async () => {
+		const [bookIndex, _] = await setupContract();
+		acc = Orbs.createAccount();
+		bookIndex.account = acc;
+
+		const result = await bookIndex.changeOwner(acc.address);
+		expect(result).to.be.eql(Error("this function is restricted!"));
+	});
+
+	it("register books restricts registring", async () => {
+		const [bookIndex, _] = await setupContract();
+
+		bookIndex.account = Orbs.createAccount();
+		const res = await bookIndex.registerBooks(getExampleBook(9300));
+
+		expect(res).to.be.eql(Error("this function is restricted!"));
+	});
 });
