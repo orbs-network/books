@@ -8,23 +8,33 @@ import (
 )
 
 // type declarations for JSON parsing
-type FileFormat struct {
+type FileVersion struct {
 	Link string
 	Format []string
 }
 
+type Publisher struct {
+	Name string
+	MetadataLink string
+	FileVersions []FileVersion
+}
+
+// TODO add ISBN and other fomat IDs
+// TODO curators
+// TODO change and approve
+
 type book struct {
 	ID uint64
 	Author string
-	FileFormats []FileFormat
 	Issued string
 	Language string
-	Link string
-	Publisher string
+	Publishers []Publisher
 	Rights string
 	Subjects []string
 	Title string
 }
+
+// TODO add addVersion, 
 
 var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks)
 var SYSTEM = sdk.Export(_init)
@@ -142,19 +152,13 @@ func _isValidBook(v book) bool {
 	if v.Author == "" {
 		return false
 	}
-	if v.FileFormats == nil {
-		return false
-	}
 	if v.Issued == ""{
 		return false
 	}
 	if v.Language == "" {
 		return false
 	}
-	if v.Link == "" {
-		return false
-	}
-	if v.Publisher == "" {
+	if v.Publishers == nil {
 		return false
 	}
 	if v.Rights == "" {

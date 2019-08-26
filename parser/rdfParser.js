@@ -22,36 +22,39 @@ function toJson(rdf) {
 	// construct the main book object from the JSON data
 	book = {
 		Author: data.creator.agent.name,
-		FileFormats: data["hasFormat"],
 		Issued: data["issued"]["$t"],
 		Language: data["language"].Description.value["$t"],
-		Link: "http://www.gutenberg.org/" + data["about"],
-		Publisher: data["publisher"],
 		Rights: data["rights"],
 		Subjects: data["subject"],
 		Title: data["title"]
 	};
 
+	book.Publishers = [{
+		Name: data["publisher"],
+		MetadataLink: "https://www.gutenberg.org/" + data["about"],
+		FileVersions: data["hasFormat"]
+	}]
+
 	// remove file format rdf and xml bloat
-	for (i = 0; i < book.FileFormats.length; i++) {
+	for (i = 0; i < book.Publishers[0].FileVersions.length; i++) {
 		// removing bloat
-		book.FileFormats[i] = {
-			Link: book.FileFormats[i].file.about,
-			Format: book.FileFormats[i].file.format
+		book.Publishers[0].FileVersions[i] = {
+			Link: book.Publishers[0].FileVersions[i].file.about,
+			Format: book.Publishers[0].FileVersions[i].file.format
 		};
 
 		// removing more bloat
-		if (book.FileFormats[i].Format.length == undefined) {
-			book.FileFormats[i].Format = [
-				book.FileFormats[i].Format.Description.value["$t"]
+		if (book.Publishers[0].FileVersions[i].Format.length == undefined) {
+			book.Publishers[0].FileVersions[i].Format = [
+				book.Publishers[0].FileVersions[i].Format.Description.value["$t"]
 			];
 			continue;
 		}
 
 		// iterativley removing bloat
-		for (j = 0; j < book.FileFormats[i].Format.length; j++) {
-			book.FileFormats[i].Format[j] =
-				book.FileFormats[i].Format[j].Description.value["$t"];
+		for (j = 0; j < book.Publishers[0].FileVersions[i].Format.length; j++) {
+			book.Publishers[0].FileVersions[i].Format[j] =
+				book.Publishers[0].FileVersions[i].Format[j].Description.value["$t"];
 		}
 	}
 
