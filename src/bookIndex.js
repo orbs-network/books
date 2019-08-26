@@ -41,6 +41,38 @@ class BookIndex {
 		}
 	}
 
+	async addCurator(newCurator){
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"addCurator",
+			[Orbs.argAddress(newCurator)]
+		);
+
+		const result = await this.client.sendTransaction(tx)
+		
+		if(result.executionResult != "SUCCESS"){
+			return new Error(result.outputArguments[0].value)
+		}
+	}
+
+	async removeCurator(curator){
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"removeCurator",
+			[Orbs.argAddress(curator)]
+		);
+
+		const result = await this.client.sendTransaction(tx)
+		
+		if(result.executionResult != "SUCCESS"){
+			return new Error(result.outputArguments[0].value)
+		}
+	}
+
 	async registerBooks(books) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,

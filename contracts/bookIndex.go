@@ -9,6 +9,10 @@ import (
 	"bytes"
 )
 
+// TODO add ISBN and other format IDs
+// TODO addPublisher, removePublisher(_onlyCurator)
+// TODO addFileVersion, removeFileVersion(_onlyCurator)
+
 // type declarations for JSON parsing
 type FileVersion struct {
 	Link string
@@ -21,10 +25,6 @@ type Publisher struct {
 	FileVersions []FileVersion
 }
 
-// TODO add ISBN and other fomat IDs
-// TODO curators
-// TODO change and approve
-
 type book struct {
 	ID uint64
 	Author string
@@ -36,11 +36,12 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner, changeOwner)
+var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner, changeOwner, addCurator, removeCurator)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
 var OWNER_KEY = []byte("owner")
+var CURATOR_KEY = []byte("curator.")
 
 func _init(){
 	state.WriteBytes(OWNER_KEY, address.GetSignerAddress())
@@ -53,9 +54,22 @@ func getOwner() []byte {
 
 // changes the current owner's address
 func changeOwner(newOwner []byte){
-	_restricted()
+	_onlyOwner()
 	address.ValidateAddress(newOwner)
 	state.WriteBytes(OWNER_KEY, newOwner)
+}
+
+// add a new curator to the list
+func addCurator(newCurator []byte){
+	_onlyOwner()
+	address.ValidateAddress(newCurator)
+	state.WriteUint32(append(CURATOR_KEY, newCurator...), 0xffffffff)
+}
+
+func removeCurator(curator []byte){
+	_onlyOwner()
+	address.ValidateAddress(curator)
+	state.Clear(append(CURATOR_KEY, curator...))
 }
 
 // returns the number of books in the registry, it is also the counter
@@ -65,7 +79,7 @@ func totalBooks() uint64 {
 
 // register multiple books to the contract's storage
 func registerBooks(payload string) string {
-	_restricted()
+	_onlyOwner()
 
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
@@ -129,8 +143,16 @@ func getBooks(start uint64, limit uint64) string {
 	return string(ret)
 }
 
-func _restricted(){
+// restricts the execution of this to only the owner of this contract
+func _onlyOwner(){
 	if !bytes.Equal(address.GetSignerAddress(), getOwner()) {
+		panic("this function is restricted!")
+	}
+}
+
+// restricts the execution of this to only a member of the curator list
+func _onlyCurator(){
+	if state.ReadUint32(append(CURATOR_KEY, address.GetSignerAddress()...)) != 0xffffffff {
 		panic("this function is restricted!")
 	}
 }
