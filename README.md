@@ -9,6 +9,10 @@ The System consists of one main smart contract that logs all Public Domain books
 Servers can download metadata about Public Domain books and then serve it to clients.
 The servers periodically check for new books that were registered on the smart contract and update their database accordingly.
 
+## Adding and Updating the Registry
+
+Everyone can add a new book or a new version of book that already exists. There is a set of curators that can remove books or version of a book from the registry.
+
 ## Client interface reference
 
 ### Importing the client interface
@@ -44,16 +48,18 @@ Here is the structure of a valid book JSON format.
 ```js
 {
 	"Author": ...,
-	"FileFormats": [
-		{
-			"Link": ...,
-			"Format": [...]
-		}
-	],
 	"Issued": ...,
 	"Language": ...,
-	"Link": ...,
-	"Publisher": ...,
+	"Publishers": [
+		{
+			"Name": ...,
+			"MetadataLink": ...,
+			"FileVersions": [
+				"Link": ...,
+				"Format": ...,
+			], ...
+		}
+	],
 	"Rights": ...,
 	"Subjects": [...],
 	"Title": ...
