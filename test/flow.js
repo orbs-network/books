@@ -304,6 +304,16 @@ describe("the book index", () => {
 		expect(result).to.not.be.an(Error);
 	});
 
+	it("should restrict curator functions", async () => {
+		const [bookIndex, _] = await setupContract();
+
+		const result1 = await bookIndex.removePublisherFromBook(0, "");
+		expect(result1).to.be.eql(Error("this function is restricted!"));
+
+		const result2 = await bookIndex.removeFileVersionFromBook(0, "", "");
+		expect(result2).to.be.eql(Error("this function is restricted!"));
+	});
+
 	it("starts off the counter from 0", async () => {
 		const [bookIndex, _] = await setupContract();
 		const zero = 0;
