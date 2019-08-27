@@ -127,6 +127,36 @@ class BookIndex {
 		}
 	}
 
+	async removePublisherFromBook(id, publisherName) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"removePublisherFromBook",
+			[Orbs.argUint64(id), Orbs.argString(publisherName)]
+		);
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
+	async removeFileVersionFromBook(id, publisherName, link) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"removeFileVersionFromBook",
+			[Orbs.argUint64(id), Orbs.argString(publisherName), Orbs.argString(link)]
+		);
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
 	async getBooks(start, limit) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,

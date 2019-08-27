@@ -44,7 +44,10 @@ var PUBLIC = sdk.Export(registerBooks,
 						addCurator,
 						removeCurator,
 						addPublisherToBook,
-						addFileVersionToBook)
+						addFileVersionToBook,
+						removePublisherFromBook,
+						removeFileVersionFromBook)
+
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
@@ -153,29 +156,29 @@ func addPublisherToBook(id uint64, publisher string){
 // add a new file version to a publisher in a book
 func addFileVersionToBook(id uint64, publisherName string, version string){
 	book := _getBook(id)
-
+	
 	var v FileVersion
 	err := json.Unmarshal([]byte(version), &v)
 	if err != nil{
 		panic(err)
 	}
-
+	
 	// check that the fileversion object is valid
 	if !_isValidFileVersion(v) {
 		panic("not a valid FileVersion object")
 	}
-
+	
 	// get the pulblisher index
 	index, success := _getPublisherIndex(id, publisherName)
 	if !success {
 		panic("no such publisher")
 	}
-
+	
 	// check that this file version for this publisher for this book does not exist yet
 	if _, found := _getFileVersionIndex(id, publisherName, v.Link); found{
 		panic("this version already exists for this publisher for this book")
 	}
-
+	
 	// get the publisher index
 	book.Publishers[index].FileVersions = append(book.Publishers[index].FileVersions, v)
 	
@@ -184,9 +187,48 @@ func addFileVersionToBook(id uint64, publisherName string, version string){
 	if err != nil {
 		panic("error converting object to json")
 	}
-
+	
 	// write json data to state
 	state.WriteBytes(_bookId(id), payload)
+}
+
+// a curator can remove a publisher from a book entry
+func removePublisherFromBook(id uint64, publisherName string){
+	_onlyCurator()
+	
+	book := _getBook(id)
+	numPublishers := len(book.Publishers)
+	
+	if index, found := _getPublisherIndex(id, publisherName); found{
+		if numPublishers == 1 {
+			// TODO remove the whole book
+		}
+		// remove the indexth publisher
+		book.Publishers = append(book.Publishers[:index], book.Publishers[index+1:]...)
+	}else{
+		panic("no such publisher for this book")
+	}
+}
+
+// a curator can remove a version from a bulisher from a book entry
+func removeFileVersionFromBook(id uint64, publisherName string, version string){
+	_onlyCurator()
+	
+	book := _getBook(id)
+
+	if indexPublisher, foundPublisher := _getPublisherIndex(id, publisherName); foundPublisher{
+		numVersions := len(book.Publishers[indexPublisher].FileVersions)
+		if index, found := _getFileVersionIndex(id, publisherName, version); found {
+			if numVersions == 1{
+				removePublisherFromBook(id, publisherName)
+			}
+			// remove indexth version
+			book.Publishers[indexPublisher].FileVersions = append(book.Publishers[indexPublisher].FileVersions[:index],
+																  book.Publishers[indexPublisher].FileVersions[index+1:]...)
+		}
+	}else{
+		panic("no such publisher for this book")
+	}
 }
 
 // get all new book entries since some given entry

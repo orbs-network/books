@@ -244,6 +244,66 @@ describe("the book index", () => {
 		);
 	});
 
+	it("should remove a publisher by a curator", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisher = {
+			Name: "John Doe",
+			FileVersions: [
+				{
+					Link: "Hello World",
+					Format: ["Hello Format"]
+				}
+			],
+			MetadataLink: "Meta Hello"
+		};
+		await bookIndex.addPublisherToBook(0, publisher);
+
+		const curator = Orbs.createAccount();
+		await bookIndex.addCurator(curator.address);
+		bookIndex.account = curator;
+
+		const result = await bookIndex.removePublisherFromBook(0, publisher.Name);
+		expect(result).to.not.be.an(Error);
+	});
+
+	it("should remove a version by a curator", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisher = {
+			Name: "John Doe",
+			FileVersions: [
+				{
+					Link: "Hello World",
+					Format: ["Hello Format"]
+				},
+				{
+					Link: "Bye World",
+					Format: ["Bye Format"]
+				}
+			],
+			MetadataLink: "Meta Hello"
+		};
+		await bookIndex.addPublisherToBook(0, publisher);
+
+		const curator = Orbs.createAccount();
+		await bookIndex.addCurator(curator.address);
+		bookIndex.account = curator;
+
+		const result = await bookIndex.removeFileVersionFromBook(
+			0,
+			publisher.Name,
+			publisher.FileVersions[1].Link
+		);
+		expect(result).to.not.be.an(Error);
+	});
+
 	it("starts off the counter from 0", async () => {
 		const [bookIndex, _] = await setupContract();
 		const zero = 0;
