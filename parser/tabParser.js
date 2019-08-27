@@ -4,14 +4,19 @@
 const fs = require("fs");
 const readline = require("readline");
 
-file = fs.createReadStream("/Users/gil/Downloads/hathi_upd_20190701.txt");
+// read the mega file
+file = fs.createReadStream("/Users/gil/Downloads/hathi_full_20190701.txt");
 
+// create the parser
 reader = readline.createInterface({ input: file });
 
 var books = [];
+var counter = 0
 reader
 	.on("line", line => {
 		line = line.split("\t");
+
+		// parse the line with tab delimiters
 		book = {
 			Author: line[25],
 			Issued: line[16],
@@ -21,6 +26,7 @@ reader
 			Title: line[11]
 		};
 
+		// add the publisher
 		book.Publishers = [
 			{
 				Name: line[12],
@@ -38,12 +44,14 @@ reader
 			}
 		];
 
-		if (book.Rights == "pd" || book.Rights == "pdus") {
-			console.log(book);
-			books.push(book);
+		// we are only interested in public domain books
+		if ((book.Rights == "pd" || book.Rights == "pdus") && book.Publishers[0].Name != "") {
+			counter++
+			if(counter<10) console.log(JSON.stringify(book))
+			//books.push(book);
 		}
 	})
 	.on("close", err => {
 		console.log("\ndone");
-		console.log(books.length);
+		console.log(counter);
 	});

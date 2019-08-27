@@ -7,11 +7,9 @@ This JSON format is defining a general eBook's metadata. It is designed to bridg
 The format's requirements are to have a book's metadata with links to download the book itself from different sources.
 
 - `Author`: `string` - The author of this book.
-- `FileFormats`: `Format[]` - An array of `Format` objects that contain a download link (`Link`: `string`) and the file format (`Format`: `string`) of the link.
 - `Issued`: `string` - The date that this book was published on.
 - `Language`: `string` - The language this book is written in.
-- `Link`: `string` - The link this book's metadata was extracted from.
-- `Publisher`: `string` - The publisher of this book.
+- `Publishers`: `Publisher[]` - an array containing all the publisher of this book. each `Publisher` contains a `Name`: `string`, `MetadataLink`: `string` and `FileVersions` array of object containing a `Link`: `string` and `Format`: `string` format type.
 - `Rights`: `string` - The rights or license which this book was published under.
 - `Subjects`: `string[]` - An array of strings that this book is about, can also be categories.
 - `Title`: `string` - The title of this book.
@@ -20,7 +18,11 @@ The format's requirements are to have a book's metadata with links to download t
 
 ## Metadata Extraction & Parsing
 
-Currently this project supports the [Project Gutenberg Public Domain Library](http://www.gutenberg.org/wiki/Main_Page). They provide a [full dataset](http://www.gutenberg.org/cache/epub/feeds/rdf-files.tar.zip) of all the books they provide. This dataset is in RDF format and a [parser](rdfParser.js) exsists that converts the PRoject Gutenberg RDF format to this JSON format.
+Currently this project supports the [Project Gutenberg Public Domain Library](http://www.gutenberg.org/wiki/Main_Page). They provide a [full dataset](http://www.gutenberg.org/cache/epub/feeds/rdf-files.tar.zip) of all the books they provide. This dataset is in RDF format and a [parser](rdfParser.js) exsists that converts the Project Gutenberg RDF format to this JSON format.
+
+This project also supports the [HathiTrust Digital Library](https://www.hathitrust.org/). They provide a [full dataset]() of all the books they provide. This dataset is in tab delimited format and a [parser]() exists that converts the HathiTrust tab delimited format to this JSON format.
+
+Note: some fields are empty as they were not provided in the datasets. you can always add a value to a missing field with the [client API](README.md).
 
 ## RDF Parser
 
