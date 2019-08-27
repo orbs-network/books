@@ -91,6 +91,42 @@ class BookIndex {
 		return JSON.parse(result.outputArguments[0].value);
 	}
 
+	async addPublisherToBook(bookId, publisher) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"addPublisherToBook",
+			[Orbs.argUint64(bookId), Orbs.argString(JSON.stringify(publisher))]
+		);
+
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
+	async addFileVersionToBook(id, publisherName, version) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"addFileVersionToBook",
+			[
+				Orbs.argUint64(id),
+				Orbs.argString(publisherName),
+				Orbs.argString(JSON.stringify(version))
+			]
+		);
+
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
 	async getBooks(start, limit) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,

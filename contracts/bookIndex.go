@@ -10,8 +10,8 @@ import (
 )
 
 // TODO add ISBN and other format IDs
-// TODO addPublisher, removePublisher(_onlyCurator)
-// TODO addFileVersion, removeFileVersion(_onlyCurator)
+// TODO removePublisher(_onlyCurator)
+// TODO removeFileVersion(_onlyCurator)
 
 // type declarations for JSON parsing
 type FileVersion struct {
@@ -36,7 +36,15 @@ type book struct {
 	Title string
 }
 
-var PUBLIC = sdk.Export(registerBooks, getBooks, totalBooks, getOwner, changeOwner, addCurator, removeCurator)
+var PUBLIC = sdk.Export(registerBooks,
+						getBooks,
+						totalBooks,
+						getOwner,
+						changeOwner,
+						addCurator,
+						removeCurator,
+						addPublisherToBook,
+						addFileVersionToBook)
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
@@ -66,6 +74,7 @@ func addCurator(newCurator []byte){
 	state.WriteUint32(append(CURATOR_KEY, newCurator...), 0xffffffff)
 }
 
+// remove a curator from the list
 func removeCurator(curator []byte){
 	_onlyOwner()
 	address.ValidateAddress(curator)
@@ -106,6 +115,78 @@ func registerBooks(payload string) string {
 	}
 
 	return string(booksRet)
+}
+
+// add a new publisher to a book in the registry
+func addPublisherToBook(id uint64, publisher string){
+	book := _getBook(id)
+
+	var p Publisher
+	err := json.Unmarshal([]byte(publisher), &p)
+	if err != nil{
+		panic(err)
+	}
+
+	// check that the publisher object is valid
+	if !_isValidPublisher(p) {
+		panic("not a valid Publisher object")
+	}
+
+	// check that the publisher does not exist
+	if _, found := _getPublisherIndex(id, p.Name); found{
+		panic("this publisher already exists for this book")
+	}
+
+	// add the new publisher
+	book.Publishers = append(book.Publishers, p)
+	
+	// get json string
+	payload, err := json.Marshal(book)
+	if err != nil {
+		panic("error converting object to json")
+	}
+
+	// write json data to state
+	state.WriteBytes(_bookId(id), payload)
+}
+
+// add a new file version to a publisher in a book
+func addFileVersionToBook(id uint64, publisherName string, version string){
+	book := _getBook(id)
+
+	var v FileVersion
+	err := json.Unmarshal([]byte(version), &v)
+	if err != nil{
+		panic(err)
+	}
+
+	// check that the fileversion object is valid
+	if !_isValidFileVersion(v) {
+		panic("not a valid FileVersion object")
+	}
+
+	// get the pulblisher index
+	index, success := _getPublisherIndex(id, publisherName)
+	if !success {
+		panic("no such publisher")
+	}
+
+	// check that this file version for this publisher for this book does not exist yet
+	if _, found := _getFileVersionIndex(id, publisherName, v.Link); found{
+		panic("this version already exists for this publisher for this book")
+	}
+
+	// get the publisher index
+	book.Publishers[index].FileVersions = append(book.Publishers[index].FileVersions, v)
+	
+	// get json string
+	payload, err := json.Marshal(book)
+	if err != nil {
+		panic("error converting object to json")
+	}
+
+	// write json data to state
+	state.WriteBytes(_bookId(id), payload)
 }
 
 // get all new book entries since some given entry
@@ -185,13 +266,45 @@ func _insertBook(b book){
 	if err != nil {
 		panic("error converting object to json")
 	}
-	state.WriteBytes([]byte(strconv.FormatUint(counter, 10)), payload)
+	state.WriteBytes(_bookId(counter), payload)
 	
 	// increase the total number of books by 1, will also increase our next address by one	
 	state.WriteUint64(COUNTER_KEY, counter + 1)
 }
 
-// makes sure the json is a valid book json
+// returns the (index, true) in array of the publishers with a given name, (0, false)
+func _getPublisherIndex(id uint64, publisherName string) (uint64, bool) {
+	book := _getBook(id)
+	
+	// search for the publisher
+	for i, v := range(book.Publishers){
+		if v.Name == publisherName {
+			// found the publisher
+			return uint64(i), true
+		}
+	}
+
+	// publisher not found
+	return 0, false
+}
+
+// returns the (index, true) in array of the file versions with a given name, (0, false)
+func _getFileVersionIndex(id uint64, publisherName string, link string) (uint64, bool) {
+	book := _getBook(id)
+
+	// search for the publisher
+	index, _ := _getPublisherIndex(id, publisherName)
+	for i, v := range(book.Publishers[index].FileVersions){
+		if v.Link == link {
+			return uint64(i), true
+		}
+	}
+
+	// version not found
+	return 0, false
+}
+
+// makes sure the book object is a valid book object
 func _isValidBook(v book) bool {
 	if v.Author == "" {
 		return false
@@ -212,6 +325,31 @@ func _isValidBook(v book) bool {
 		return false
 	}
 	if v.Title == ""{
+		return false
+	}
+	return true
+}
+
+// makes sure the Publisher object is a valid publisher object
+func _isValidPublisher(v Publisher) bool {
+	if v.Name == "" {
+		return false
+	}
+	if v.FileVersions == nil {
+		return false
+	}
+	if v.MetadataLink == "" {
+		return false
+	}
+	return true
+}
+
+// makes sure the Publisher object is a valid publisher object
+func _isValidFileVersion(v FileVersion) bool {
+	if v.Format == nil {
+		return false
+	}
+	if v.Link == "" {
 		return false
 	}
 	return true

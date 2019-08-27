@@ -154,6 +154,96 @@ describe("the book index", () => {
 		expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
 	});
 
+	it("should add a publisher", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+
+		const publisher = {
+			Name: "John Doe",
+			FileVersions: [
+				{
+					Link: "Hello World",
+					Format: ["Hello Format"]
+				}
+			],
+			MetadataLink: "Meta Hello"
+		};
+
+		const result = await bookIndex.addPublisherToBook(0, publisher);
+		expect(result).to.not.be.an(Error);
+	});
+
+	it("should add a version", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisherName = getExampleBook(9300).Publishers[0].Name;
+
+		const version = {
+			Link: "Hello world",
+			Format: ["Hello Format"]
+		};
+
+		const result = await bookIndex.addFileVersionToBook(
+			0,
+			publisherName,
+			version
+		);
+		expect(result).to.not.be.an(Error);
+	});
+
+	it("should reject publisher addition that already exists", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisher = {
+			Name: "John Doe",
+			FileVersions: [
+				{
+					Link: "Hello World",
+					Format: ["Hello Format"]
+				}
+			],
+			MetadataLink: "Meta Hello"
+		};
+
+		await bookIndex.addPublisherToBook(0, publisher);
+		const result = await bookIndex.addPublisherToBook(0, publisher);
+		expect(result).to.be.eql(
+			Error("this publisher already exists for this book")
+		);
+	});
+
+	it("should reject version addition that already exists", async () => {
+		const [bookIndex, _] = await setupContract();
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisherName = getExampleBook(9300).Publishers[0].Name;
+		const version = {
+			Link: "Hello world",
+			Format: ["Hello Format"]
+		};
+
+		await bookIndex.addFileVersionToBook(0, publisherName, version);
+		const result = await bookIndex.addFileVersionToBook(
+			0,
+			publisherName,
+			version
+		);
+		expect(result).to.be.eql(
+			Error("this version already exists for this publisher for this book")
+		);
+	});
+
 	it("starts off the counter from 0", async () => {
 		const [bookIndex, _] = await setupContract();
 		const zero = 0;
