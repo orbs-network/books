@@ -10,8 +10,6 @@ import (
 )
 
 // TODO add ISBN and other format IDs
-// TODO removePublisher(_onlyCurator)
-// TODO removeFileVersion(_onlyCurator)
 
 // type declarations for JSON parsing
 type FileVersion struct {
@@ -91,8 +89,6 @@ func totalBooks() uint64 {
 
 // register multiple books to the contract's storage
 func registerBooks(payload string) string {
-	_onlyOwner()
-
 	var books []book
 	err := json.Unmarshal([]byte(payload), &books)
 	if err != nil{
