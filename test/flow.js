@@ -54,60 +54,40 @@ function getExampleBookWithId(gutenbergId, id) {
 }
 
 describe("the book index", () => {
-	it("should deploy successfully", async () => {
+	it("deploys successfully", async () => {
 		const [_, deployResp] = await setupContract();
 		expect(deployResp.executionResult).to.be("SUCCESS");
 	});
 
-	it("should store a valid book", async () => {
+	it("registers and retrieves books", async () => {
 		const [bookIndex, _] = await setupContract();
 
+		// insert two books
 		const result = await bookIndex.registerBooks([getExampleBook(9300)]);
 		expect(result).to.be.eql([0]);
-	});
 
-	it("should throw when an invalid json object is sent", async () => {
-		const [bookIndex, _] = await setupContract();
+		const result1 = await bookIndex.registerBooks([getExampleBook(9406)]);
+		expect(result1).to.be.eql([1]);
 
-		const result = await bookIndex.registerBooks([getExampleBook(-1)]);
-		expect(result).to.be.a(Error);
-	});
+		// invalid json, returns an error
+		const result2 = await bookIndex.registerBooks([getExampleBook(-1)]);
+		expect(result2).to.be.a(Error);
 
-	it("should return no books when there are no new ones", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
+		// no new books to add
+		const resul2 = await bookIndex.getBooks(2, 2);
+		expect(resul2).to.be(null);
 
-		const result = await bookIndex.getBooks(2, 2);
-		expect(result).to.be(null);
-	});
-
-	it("should store and retrieve the same book", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([getExampleBook(9300)]);
-
-		const result = await bookIndex.getBooks(0, 1);
+		// return the same book object with an ID
+		const result3 = await bookIndex.getBook(0);
 		const exampleBookWithId = getExampleBookWithId(9300, 0);
-		expect(result[0]).to.be.eql(exampleBookWithId);
+		expect(result3).to.be.eql(exampleBookWithId);
+
+		// return error if id is not found
+		const result4 = await bookIndex.getBook(3);
+		expect(result4).to.be.eql(Error("no such book id"));
 	});
 
-	it("should retreive a single book", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
-
-		const result1 = await bookIndex.getBook(0);
-		expect(result1[0]).to.be.eql(getExampleBookWithId(9300, 0));
-
-		const result2 = await bookIndex.getBook(1);
-		expect(result2[0]).to.be.eql(getExampleBookWithId(9406, 1));
-	});
-
-	it("should register multiple books and retrieve the same", async () => {
+	it("batch registers books and retrieves books", async () => {
 		const [bookIndex, _] = await setupContract();
 		const two = 2;
 
@@ -125,36 +105,7 @@ describe("the book index", () => {
 		expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
 	});
 
-	it("should return error if the id is not registered", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
-
-		const result = await bookIndex.getBook(3);
-		expect(result).to.be.eql(Error("no such book id"));
-	});
-
-	it("should register books even if it is not empty and retreive the same", async () => {
-		const [bookIndex, _] = await setupContract();
-		const two = 2;
-
-		const result1 = await bookIndex.registerBooks([getExampleBook(9300)]);
-		expect(result1).to.be.eql([0]);
-
-		const result2 = await bookIndex.registerBooks([getExampleBook(9406)]);
-		expect(result2).to.be.eql([1]);
-
-		const counter = await bookIndex.totalBooks();
-		expect(counter).to.be(two);
-
-		const ret = await bookIndex.getBooks(0, 2);
-		expect(ret[0]).to.be.eql(getExampleBookWithId(9300, 0));
-		expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
-	});
-
-	it("should add a publisher", async () => {
+	it("adds a publisher and version", async () => {
 		const [bookIndex, _] = await setupContract();
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
@@ -172,32 +123,35 @@ describe("the book index", () => {
 			MetadataLink: "Meta Hello"
 		};
 
+		// add a publisher to a book
 		const result = await bookIndex.addPublisherToBook(0, publisher);
 		expect(result).to.not.be.an(Error);
-	});
-
-	it("should add a version", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
-		const publisherName = getExampleBook(9300).Publishers[0].Name;
+		const result1 = await bookIndex.getBook(0);
+		book = getExampleBookWithId(9300, 0);
+		book.Publishers.push(publisher);
+		expect(result1).to.be.eql(book);
 
 		const version = {
 			Link: "Hello world",
-			Format: ["Hello Format"]
+			Format: ["Hello Book"]
 		};
 
-		const result = await bookIndex.addFileVersionToBook(
+		// add a version to a book
+		const result2 = await bookIndex.addFileVersionToBook(
 			0,
-			publisherName,
+			publisher.Name,
 			version
 		);
-		expect(result).to.not.be.an(Error);
+		expect(result2).to.not.be.an(Error);
+		book = getExampleBookWithId(9300, 0);
+		book.Publishers.push(publisher);
+		book.Publishers[1].FileVersions.push(version);
+		const result3 = await bookIndex.getBook(0);
+
+		expect(result3).to.be.eql(book);
 	});
 
-	it("should reject publisher addition that already exists", async () => {
+	it("rejects publisher and version addition that already exist", async () => {
 		const [bookIndex, _] = await setupContract();
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
@@ -214,64 +168,33 @@ describe("the book index", () => {
 			MetadataLink: "Meta Hello"
 		};
 
+		// reject publisher that already exists
 		await bookIndex.addPublisherToBook(0, publisher);
 		const result = await bookIndex.addPublisherToBook(0, publisher);
 		expect(result).to.be.eql(
 			Error("this publisher already exists for this book")
 		);
-	});
 
-	it("should reject version addition that already exists", async () => {
-		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
-		const publisherName = getExampleBook(9300).Publishers[0].Name;
 		const version = {
 			Link: "Hello world",
 			Format: ["Hello Format"]
 		};
 
-		await bookIndex.addFileVersionToBook(0, publisherName, version);
-		const result = await bookIndex.addFileVersionToBook(
+		// reject version that already exists
+		await bookIndex.addFileVersionToBook(0, publisher.Name, version);
+		const result1 = await bookIndex.addFileVersionToBook(
 			0,
-			publisherName,
+			publisher.Name,
 			version
 		);
-		expect(result).to.be.eql(
-			Error("this version already exists for this publisher for this book")
+		expect(result1).to.be.eql(
+			Error("this publisher already exists for this book")
 		);
 	});
 
-	it("should remove a publisher by a curator", async () => {
+	it("removes a publisher or version only by a curator", async () => {
 		const [bookIndex, _] = await setupContract();
-		const books = await bookIndex.registerBooks([
-			getExampleBook(9300),
-			getExampleBook(9406)
-		]);
-		const publisher = {
-			Name: "John Doe",
-			FileVersions: [
-				{
-					Link: "Hello World",
-					Format: ["Hello Format"]
-				}
-			],
-			MetadataLink: "Meta Hello"
-		};
-		await bookIndex.addPublisherToBook(0, publisher);
-
-		const curator = Orbs.createAccount();
-		await bookIndex.addCurator(curator.address);
-		bookIndex.account = curator;
-
-		const result = await bookIndex.removePublisherFromBook(0, publisher.Name);
-		expect(result).to.not.be.an(Error);
-	});
-
-	it("should remove a version by a curator", async () => {
-		const [bookIndex, _] = await setupContract();
+		const owner = bookIndex.account;
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
 			getExampleBook(9406)
@@ -294,80 +217,68 @@ describe("the book index", () => {
 
 		const curator = Orbs.createAccount();
 		await bookIndex.addCurator(curator.address);
-		bookIndex.account = curator;
 
-		const result = await bookIndex.removeFileVersionFromBook(
+		// reject remove not by curator
+		const result = await bookIndex.removePublisherFromBook(0, publisher.Name);
+		expect(result).to.be.eql(Error("this function is restricted!"));
+
+		// accept remove by curator
+		bookIndex.account = curator;
+		const result1 = await bookIndex.removePublisherFromBook(0, publisher.Name);
+		expect(result1).to.not.be.an(Error);
+
+		// reject remove not by curator
+		bookIndex.account = owner;
+		const result2 = await bookIndex.removeFileVersionFromBook(
 			0,
 			publisher.Name,
-			publisher.FileVersions[1].Link
+			"BYe World"
 		);
-		expect(result).to.not.be.an(Error);
-	});
-
-	it("should restrict curator functions", async () => {
-		const [bookIndex, _] = await setupContract();
-
-		const result1 = await bookIndex.removePublisherFromBook(0, "");
-		expect(result1).to.be.eql(Error("this function is restricted!"));
-
-		const result2 = await bookIndex.removeFileVersionFromBook(0, "", "");
 		expect(result2).to.be.eql(Error("this function is restricted!"));
+
+		// accept remove by curator
+		bookIndex.account = curator;
+		const result3 = await bookIndex.removeFileVersionFromBook(
+			0,
+			publisher.Name,
+			"Bye World"
+		);
+		expect(result3).to.not.be.an(Error);
 	});
 
-	it("starts off the counter from 0", async () => {
+	it("counts the number of books in the registry", async () => {
 		const [bookIndex, _] = await setupContract();
 		const zero = 0;
-
-		const result = await bookIndex.totalBooks();
-		expect(result).to.be(zero);
-	});
-
-	it("counts the number of books in the registry and returns the correct number", async () => {
-		const [bookIndex, _] = await setupContract();
-		await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)]);
 		const two = 2;
 
 		const result = await bookIndex.totalBooks();
-		expect(result).to.be(two);
+		expect(result).to.be(zero);
+
+		await bookIndex.registerBooks([getExampleBook(9300), getExampleBook(9406)]);
+		const result1 = await bookIndex.totalBooks();
+		expect(result1).to.be(two);
 	});
 
-	it("getOwner returns the deployer", async () => {
+	it("manages the owner of the contract", async () => {
 		const [bookIndex, _] = await setupContract();
+
+		// returns the owner
 		const result = await bookIndex.getOwner();
-
 		expect(result).to.be.eql(bookIndex.account.address.toLowerCase());
-	});
 
-	it("should change owner", async () => {
-		const [bookIndex, _] = await setupContract();
-		acc = Orbs.createAccount();
-
-		const result = await bookIndex.changeOwner(acc.address);
-		expect(result).to.not.be.an(Error);
-
+		// change the owner
+		const acc = Orbs.createAccount();
+		await bookIndex.changeOwner(acc.address);
 		const owner = await bookIndex.getOwner();
 		expect(owner).to.be(acc.address.toLowerCase());
-	});
 
-	it("should block access on changeOwner", async () => {
-		const [bookIndex, _] = await setupContract();
-		acc = Orbs.createAccount();
-		bookIndex.account = acc;
-
-		const result = await bookIndex.changeOwner(acc.address);
-		expect(result).to.be.eql(Error("this function is restricted!"));
-	});
-
-	it("register books restricts registring", async () => {
-		const [bookIndex, _] = await setupContract();
-
+		// rejects owner changes without owner permission
 		bookIndex.account = Orbs.createAccount();
-		const result = await bookIndex.registerBooks(getExampleBook(9300));
-
-		expect(result).to.be.eql(Error("this function is restricted!"));
+		const result1 = await bookIndex.changeOwner(acc.address);
+		expect(result1).to.be.eql(Error("this function is restricted!"));
 	});
 
-	it("adds and removes curators", async () => {
+	it("manages curators", async () => {
 		const [bookIndex, _] = await setupContract();
 
 		curator = Orbs.createAccount();
