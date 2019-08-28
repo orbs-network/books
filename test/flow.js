@@ -264,13 +264,13 @@ describe("the book index", () => {
 
 		// returns the owner
 		const result = await bookIndex.getOwner();
-		expect(result).to.be.eql(bookIndex.account.address.toLowerCase());
+		expect(result).to.be.eql(bookIndex.account.address);
 
 		// change the owner
 		const acc = Orbs.createAccount();
 		await bookIndex.changeOwner(acc.address);
 		const owner = await bookIndex.getOwner();
-		expect(owner).to.be(acc.address.toLowerCase());
+		expect(owner).to.be(acc.address);
 
 		// rejects owner changes without owner permission
 		bookIndex.account = Orbs.createAccount();

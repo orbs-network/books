@@ -22,7 +22,7 @@ class BookIndex {
 			return new Error(result.executionResult);
 		}
 
-		return "0x" + result.outputArguments[0].value.toString("hex");
+		return Orbs.encodeHex(result.outputArguments[0].value);
 	}
 
 	async changeOwner(newAddress) {
