@@ -204,7 +204,7 @@ class BookIndex {
 			return null;
 		}
 
-		return JSON.parse(result.outputArguments[0].value);
+		return JSON.parse(result.outputArguments[0].value)[0];
 	}
 
 	async totalBooks() {
