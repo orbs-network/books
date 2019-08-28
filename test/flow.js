@@ -232,7 +232,7 @@ describe("the book index", () => {
 		const result2 = await bookIndex.removeFileVersionFromBook(
 			0,
 			publisher.Name,
-			"BYe World"
+			"Bye World"
 		);
 		expect(result2).to.be.eql(Error("this function is restricted!"));
 
@@ -240,7 +240,7 @@ describe("the book index", () => {
 		bookIndex.account = curator;
 		const result3 = await bookIndex.removeFileVersionFromBook(
 			0,
-			publisher.Name,
+			getExampleBook(9300).Publishers[0].Name,
 			"Bye World"
 		);
 		expect(result3).to.not.be.an(Error);
@@ -300,4 +300,67 @@ describe("the book index", () => {
 		const result1 = await bookIndex.removeCurator(curator.address);
 		expect(result).to.be.an(Error);
 	});
+
+	it("removes empty entries", async () => {
+		const [bookIndex, _] = await setupContract();
+		const owner = bookIndex.account
+		const curator = Orbs.createAccount()
+		await bookIndex.addCurator(curator.address)
+
+		const books = await bookIndex.registerBooks([
+			getExampleBook(9300),
+			getExampleBook(9406)
+		]);
+		const publisher = {
+			Name: "John Doe",
+			FileVersions: [
+				{
+					Link: "Hello World",
+					Format: ["Hello Format"]
+				}
+			],
+			MetadataLink: "Meta Hello"
+		};
+
+		// remove a publisher by removeing a file version
+		bookIndex.account = curator
+		await bookIndex.addPublisherToBook(0, publisher);
+		await bookIndex.removeFileVersionFromBook(0, publisher.Name, "Hello World")
+
+		const result = await bookIndex.getBook(0)
+		expect(result).to.be.eql(getExampleBookWithId(9300, 0))
+	
+		// remove a book by removing a publisher
+		await bookIndex.removePublisherFromBook(0, result.Publishers[0].Name)
+		const result1 = await bookIndex.getBook(0)
+		expect(result1).to.be.eql(Error("this book was removed"))
+
+		// still returns next book
+		const result2 = await bookIndex.getBook(1)
+		expect(result2).to.be.eql(getExampleBookWithId(9406, 1))
+
+		// be able to add new book and retrieve it
+		await bookIndex.registerBooks([getExampleBook(9300)])
+		const result3 = await bookIndex.getBook(2)
+		expect(result3).to.be.eql(getExampleBookWithId(9300, 2))
+
+		// return the correct amount of books
+		bookIndex.account = owner
+		const result4 = await bookIndex.totalBooks()
+		expect(result4).to.be(2)
+
+		// restricts removeBook to curators
+		const result5 = await bookIndex.removeBook(2)
+		expect(result5).to.be.eql(Error("this function is restricted!"))		
+
+		// remove the whole book
+		bookIndex.account = curator
+		await bookIndex.removeBook(2)
+		const result6 = await bookIndex.getBook(2)
+		expect(result6).to.be.eql(Error("this book was removed"))
+
+		// return the correct amount of book
+		const result7 = await bookIndex.totalBooks()
+		expect(result7).to.be(1)
+	})
 });

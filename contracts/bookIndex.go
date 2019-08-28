@@ -43,12 +43,14 @@ var PUBLIC = sdk.Export(registerBooks,
 						removeCurator,
 						addPublisherToBook,
 						addFileVersionToBook,
+						removeBook,
 						removePublisherFromBook,
 						removeFileVersionFromBook)
 
 var SYSTEM = sdk.Export(_init)
 
 var COUNTER_KEY = []byte("counter")
+var REMOVED_KEY = []byte("removed")
 var OWNER_KEY = []byte("owner")
 var CURATOR_KEY = []byte("curator.")
 
@@ -84,7 +86,7 @@ func removeCurator(curator []byte){
 
 // returns the number of books in the registry, it is also the counter
 func totalBooks() uint64 {
-	return state.ReadUint64(COUNTER_KEY)
+	return _getCounter() - _getRemoved()
 }
 
 // register multiple books to the contract's storage
@@ -188,19 +190,34 @@ func addFileVersionToBook(id uint64, publisherName string, version string){
 	state.WriteBytes(_bookId(id), payload)
 }
 
+// a curator can remove a whole book
+func removeBook(id uint64){
+	_onlyCurator()
+	state.WriteUint64(REMOVED_KEY, _getRemoved() + 1)
+	state.Clear(_bookId(id))
+}
+
 // a curator can remove a publisher from a book entry
 func removePublisherFromBook(id uint64, publisherName string){
 	_onlyCurator()
 	
 	book := _getBook(id)
 	numPublishers := len(book.Publishers)
-	
 	if index, found := _getPublisherIndex(id, publisherName); found{
 		if numPublishers == 1 {
-			// TODO remove the whole book
+			// the book will be empty, remove it
+			removeBook(id)
+			return
 		}
 		// remove the indexth publisher
 		book.Publishers = append(book.Publishers[:index], book.Publishers[index+1:]...)
+
+		// write the new book to state
+		payload, err := json.Marshal(book)
+		if err != nil {
+			panic("error converting object to json")
+		}
+		state.WriteBytes(_bookId(id), payload)
 	}else{
 		panic("no such publisher for this book")
 	}
@@ -217,10 +234,18 @@ func removeFileVersionFromBook(id uint64, publisherName string, version string){
 		if index, found := _getFileVersionIndex(id, publisherName, version); found {
 			if numVersions == 1{
 				removePublisherFromBook(id, publisherName)
+				return
 			}
 			// remove indexth version
 			book.Publishers[indexPublisher].FileVersions = append(book.Publishers[indexPublisher].FileVersions[:index],
 																  book.Publishers[indexPublisher].FileVersions[index+1:]...)
+		
+			// write the new book to state
+			payload, err := json.Marshal(book)
+			if err != nil {
+				panic("error converting object to json")
+			}
+			state.WriteBytes(_bookId(id), payload)
 		}
 	}else{
 		panic("no such publisher for this book")
@@ -230,7 +255,7 @@ func removeFileVersionFromBook(id uint64, publisherName string, version string){
 // get all new book entries since some given entry
 func getBooks(start uint64, limit uint64) string {
 	// make sure the server is requesting valid adresses
-	counter := totalBooks()
+	counter := _getCounter()
 	if start > counter {
 		// panic if the address requested is invalid
 		panic("no such book id")
@@ -248,6 +273,7 @@ func getBooks(start uint64, limit uint64) string {
 		// read raw book json and append it to
 		// TODO get rid of corrupt json data
 		a := _getBook(uint64(i + start))
+
 		// create an object array
 		books = append(books, a)
 	}
@@ -276,9 +302,24 @@ func _onlyCurator(){
 	}
 }
 
+// return the max amount of book in the registry
+func _getCounter() uint64 {
+	return state.ReadUint64(COUNTER_KEY)
+}
+
+// return the amount of book removed from the registry
+func _getRemoved() uint64 {
+	return state.ReadUint64(REMOVED_KEY)
+}
+
 // returns a single book
 func _getBook(i uint64) (b book) {
 	rawBytes := state.ReadBytes(_bookId(i))
+
+	// book was removed
+	if string(rawBytes) == "" {
+		panic("this book was removed")
+	}
 
 	err := json.Unmarshal(rawBytes, &b)
 	if err != nil{

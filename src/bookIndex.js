@@ -127,6 +127,22 @@ class BookIndex {
 		}
 	}
 
+	async removeBook(id) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"removeBook",
+			[Orbs.argUint64(id)]
+		)
+
+		const result = await this.client.sendTransaction(tx)
+		
+		if(result.executionResult != "SUCCESS"){
+			return new Error(result.outputArguments[0].value)
+		}
+	}
+
 	async removePublisherFromBook(id, publisherName) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,
@@ -192,7 +208,6 @@ class BookIndex {
 		);
 
 		const result = await this.client.sendTransaction(tx);
-
 		if (result.executionResult != "SUCCESS") {
 			if (result.outputArguments[0].value == "no such book id") {
 				return new Error("no such book id");
