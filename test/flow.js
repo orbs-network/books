@@ -105,7 +105,7 @@ describe("the book index", () => {
 		expect(ret[1]).to.be.eql(getExampleBookWithId(9406, 1));
 	});
 
-	it("adds a publisher and version", async () => {
+	it("adds a publisher, version and subject", async () => {
 		const [bookIndex, _] = await setupContract();
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
@@ -143,15 +143,24 @@ describe("the book index", () => {
 			version
 		);
 		expect(result2).to.not.be.an(Error);
+
 		book = getExampleBookWithId(9300, 0);
 		book.Publishers.push(publisher);
 		book.Publishers[1].FileVersions.push(version);
 		const result3 = await bookIndex.getBook(0);
-
 		expect(result3).to.be.eql(book);
+
+		// add a subject to a book
+		const sub = "Orbs";
+		const result4 = await bookIndex.addSubjectToBook(0, sub);
+		expect(result4).to.not.be.an(Error);
+
+		book.Subjects.push(sub);
+		const result5 = await bookIndex.getBook(0);
+		expect(result5).to.be.eql(book);
 	});
 
-	it("rejects publisher and version addition that already exist", async () => {
+	it("rejects publisher, version and subject addition that already exist", async () => {
 		const [bookIndex, _] = await setupContract();
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
@@ -190,6 +199,15 @@ describe("the book index", () => {
 		expect(result1).to.be.eql(
 			Error("this publisher already exists for this book")
 		);
+
+		// reject subject addition that already exists
+		const result2 = await bookIndex.addSubjectToBook(
+			0,
+			getExampleBook(9300).Subjects[0]
+		);
+		expect(result2).to.be.eql(
+			Error("this subject already exists for this book")
+		);
 	});
 
 	it("removes a publisher or version only by a curator", async () => {
@@ -218,16 +236,16 @@ describe("the book index", () => {
 		const curator = Orbs.createAccount();
 		await bookIndex.addCurator(curator.address);
 
-		// reject remove not by curator
+		// reject remove publisher not by curator
 		const result = await bookIndex.removePublisherFromBook(0, publisher.Name);
 		expect(result).to.be.eql(Error("this function is restricted!"));
 
-		// accept remove by curator
+		// accept remove publisher by curator
 		bookIndex.account = curator;
 		const result1 = await bookIndex.removePublisherFromBook(0, publisher.Name);
 		expect(result1).to.not.be.an(Error);
 
-		// reject remove not by curator
+		// reject remove file version not by curator
 		bookIndex.account = owner;
 		const result2 = await bookIndex.removeFileVersionFromBook(
 			0,
@@ -236,14 +254,28 @@ describe("the book index", () => {
 		);
 		expect(result2).to.be.eql(Error("this function is restricted!"));
 
-		// accept remove by curator
+		// accept remove file version by curator
 		bookIndex.account = curator;
 		const result3 = await bookIndex.removeFileVersionFromBook(
 			0,
 			getExampleBook(9300).Publishers[0].Name,
 			"Bye World"
 		);
-		expect(result3).to.not.be.an(Error);
+		expect(result3).to.be.an(Error);
+
+		// accept remove subject by curator
+		const result4 = await bookIndex.removeSubjectFromBook(
+			0,
+			getExampleBook(9300).Subjects[0]
+		);
+		expect(result4).to.not.be.an(Error);
+
+		// reject remove subject not by curator
+		const result5 = await bookIndex.removeSubjectFromBook(
+			0,
+			getExampleBook(9300).Subjects[0]
+		);
+		expect(result5).to.be.eql(Error("this function is restricted"));
 	});
 
 	it("counts the number of books in the registry", async () => {
@@ -303,9 +335,9 @@ describe("the book index", () => {
 
 	it("removes empty entries", async () => {
 		const [bookIndex, _] = await setupContract();
-		const owner = bookIndex.account
-		const curator = Orbs.createAccount()
-		await bookIndex.addCurator(curator.address)
+		const owner = bookIndex.account;
+		const curator = Orbs.createAccount();
+		await bookIndex.addCurator(curator.address);
 
 		const books = await bookIndex.registerBooks([
 			getExampleBook(9300),
@@ -323,44 +355,44 @@ describe("the book index", () => {
 		};
 
 		// remove a publisher by removeing a file version
-		bookIndex.account = curator
+		bookIndex.account = curator;
 		await bookIndex.addPublisherToBook(0, publisher);
-		await bookIndex.removeFileVersionFromBook(0, publisher.Name, "Hello World")
+		await bookIndex.removeFileVersionFromBook(0, publisher.Name, "Hello World");
 
-		const result = await bookIndex.getBook(0)
-		expect(result).to.be.eql(getExampleBookWithId(9300, 0))
-	
+		const result = await bookIndex.getBook(0);
+		expect(result).to.be.eql(getExampleBookWithId(9300, 0));
+
 		// remove a book by removing a publisher
-		await bookIndex.removePublisherFromBook(0, result.Publishers[0].Name)
-		const result1 = await bookIndex.getBook(0)
-		expect(result1).to.be.eql(Error("this book was removed"))
+		await bookIndex.removePublisherFromBook(0, result.Publishers[0].Name);
+		const result1 = await bookIndex.getBook(0);
+		expect(result1).to.be.eql(Error("this book was removed"));
 
 		// still returns next book
-		const result2 = await bookIndex.getBook(1)
-		expect(result2).to.be.eql(getExampleBookWithId(9406, 1))
+		const result2 = await bookIndex.getBook(1);
+		expect(result2).to.be.eql(getExampleBookWithId(9406, 1));
 
 		// be able to add new book and retrieve it
-		await bookIndex.registerBooks([getExampleBook(9300)])
-		const result3 = await bookIndex.getBook(2)
-		expect(result3).to.be.eql(getExampleBookWithId(9300, 2))
+		await bookIndex.registerBooks([getExampleBook(9300)]);
+		const result3 = await bookIndex.getBook(2);
+		expect(result3).to.be.eql(getExampleBookWithId(9300, 2));
 
 		// return the correct amount of books
-		bookIndex.account = owner
-		const result4 = await bookIndex.totalBooks()
-		expect(result4).to.be(2)
+		bookIndex.account = owner;
+		const result4 = await bookIndex.totalBooks();
+		expect(result4).to.be(2);
 
 		// restricts removeBook to curators
-		const result5 = await bookIndex.removeBook(2)
-		expect(result5).to.be.eql(Error("this function is restricted!"))		
+		const result5 = await bookIndex.removeBook(2);
+		expect(result5).to.be.eql(Error("this function is restricted!"));
 
 		// remove the whole book
-		bookIndex.account = curator
-		await bookIndex.removeBook(2)
-		const result6 = await bookIndex.getBook(2)
-		expect(result6).to.be.eql(Error("this book was removed"))
+		bookIndex.account = curator;
+		await bookIndex.removeBook(2);
+		const result6 = await bookIndex.getBook(2);
+		expect(result6).to.be.eql(Error("this book was removed"));
 
 		// return the correct amount of book
-		const result7 = await bookIndex.totalBooks()
-		expect(result7).to.be(1)
-	})
+		const result7 = await bookIndex.totalBooks();
+		expect(result7).to.be(1);
+	});
 });

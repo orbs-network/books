@@ -43,6 +43,8 @@ var PUBLIC = sdk.Export(registerBooks,
 						removeCurator,
 						addPublisherToBook,
 						addFileVersionToBook,
+						addSubjectToBook,
+						removeSubjectFromBook,
 						removeBook,
 						removePublisherFromBook,
 						removeFileVersionFromBook)
@@ -190,6 +192,32 @@ func addFileVersionToBook(id uint64, publisherName string, version string){
 	state.WriteBytes(_bookId(id), payload)
 }
 
+// add a subject or category to a book
+func addSubjectToBook(id uint64, subject string){
+	book := _getBook(id)
+
+	if subject == ""{
+		panic("cant add empty subject")
+	}
+
+	// check that this subject for this book does not exist yet
+	if _, found := _getSubjectIndex(id, subject); found{
+		panic("this subject already exists for this book")
+	}
+
+	// add subject to object
+	book.Subjects = append(book.Subjects, subject)
+
+	// get json string
+	payload, err := json.Marshal(book)
+	if err != nil {
+		panic("error converting object to json")
+	}
+	
+	// write json data to state
+	state.WriteBytes(_bookId(id), payload)
+}
+
 // a curator can remove a whole book
 func removeBook(id uint64){
 	_onlyCurator()
@@ -246,10 +274,31 @@ func removeFileVersionFromBook(id uint64, publisherName string, version string){
 				panic("error converting object to json")
 			}
 			state.WriteBytes(_bookId(id), payload)
+		}else{
+			panic("no such file version for this publisher")
 		}
 	}else{
 		panic("no such publisher for this book")
 	}
+}
+
+// removes a subject from a book
+func removeSubjectFromBook(id uint64, subject string){
+	_onlyCurator()
+	book := _getBook(id)
+	
+	if index, found := _getSubjectIndex(id, subject); found {
+		book.Subjects = append(book.Subjects[:index], book.Subjects[index+1:]...)
+	}else{
+		panic("no such subject for this book")
+	}
+
+	// write the new book to state
+	payload, err := json.Marshal(book)
+	if err != nil {
+		panic("error converting object to json")
+	}
+	state.WriteBytes(_bookId(id), payload)
 }
 
 // get all new book entries since some given entry
@@ -380,6 +429,21 @@ func _getFileVersionIndex(id uint64, publisherName string, link string) (uint64,
 	}
 
 	// version not found
+	return 0, false
+}
+
+// returns (index, true) in array of the subjects with a given name, (0, false)
+func _getSubjectIndex(id uint64, subject string) (uint64, bool) {
+	book := _getBook(id)
+
+	// search for the subject
+	for i, v := range(book.Subjects){
+		if v == subject{
+			return uint64(i), true
+		}
+	}
+	
+	// subject not found
 	return 0, false
 }
 

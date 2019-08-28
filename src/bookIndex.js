@@ -127,6 +127,22 @@ class BookIndex {
 		}
 	}
 
+	async addSubjectToBook(id, subject) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"addSubjectToBook",
+			[Orbs.argUint64(id), Orbs.argString(subject)]
+		);
+
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
 	async removeBook(id) {
 		const [tx, txId] = this.client.createTransaction(
 			this.account.publicKey,
@@ -134,12 +150,12 @@ class BookIndex {
 			this.name,
 			"removeBook",
 			[Orbs.argUint64(id)]
-		)
+		);
 
-		const result = await this.client.sendTransaction(tx)
-		
-		if(result.executionResult != "SUCCESS"){
-			return new Error(result.outputArguments[0].value)
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
 		}
 	}
 
@@ -166,6 +182,23 @@ class BookIndex {
 			"removeFileVersionFromBook",
 			[Orbs.argUint64(id), Orbs.argString(publisherName), Orbs.argString(link)]
 		);
+
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+	}
+
+	async removeSubjectFromBook(id, subject) {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"removeSubjectFromBook",
+			[Orbs.argUint64(id), Orbs.argString(subject)]
+		);
+
 		const result = await this.client.sendTransaction(tx);
 
 		if (result.executionResult != "SUCCESS") {
