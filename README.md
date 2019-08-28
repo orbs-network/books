@@ -11,7 +11,9 @@ The servers periodically check for new books that were registered on the smart c
 
 ## Adding and Updating the Registry
 
-Everyone can add a new book or a new version of book that already exists. There is a set of curators that can remove books or version of a book from the registry.
+Everyone can add a new book or a new version of book that already exists. There is a set of curators that can remove books or versions of a book they find incorrect. Curators are added or removed from the access list by the owner of the contract.
+
+Note: book IDs will always stay the same even though yuo can remove books. Books that their only publisher is removed will be removed as well. Publisher that thier only file version is removed will be removed as well.
 
 ## Client interface reference
 
