@@ -4,6 +4,29 @@
 const fs = require("fs");
 const xmlParser = require("xml2json");
 
+const dirPath = "/Users/gil/Downloads/cache/epub/"
+const outputDirPath = "/Users/gil/Downloads/gutenberg/"
+
+fs.readdir(dirPath, (err, files) => {
+	if(err){
+		return console.log(err)
+	}
+	counter = 0
+	files.forEach((file) => {
+		if(!fs.existsSync(outputDirPath + file + ".json")){
+			try{
+				fs.writeFileSync(outputDirPath + file + ".json", fileToJson(dirPath+file+"/pg"+file+".rdf"))
+				counter++
+				console.log(counter + " " + file + ".json")
+			}catch(err){
+				console.log(err)
+			}
+		}
+	})
+	console.log("done")
+	console.log(counter)
+})
+
 // returns the json representation of an rdf file from the gutenberg project
 // if the file does not exist it returns null
 function toJson(rdf) {
