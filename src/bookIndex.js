@@ -1,4 +1,5 @@
 const Orbs = require("orbs-client-sdk");
+const fs = require("fs");
 
 class BookIndex {
 	constructor(account, client, name) {
@@ -274,6 +275,34 @@ class BookIndex {
 	}
 }
 
+function getContractCode(contractName) {
+	return fs.readFileSync(`${__dirname}/../contracts/` + contractName);
+}
+
+async function deploy(client, acc, code, contractName) {
+	const [tx, txid] = client.createTransaction(
+		acc.publicKey,
+		acc.privateKey,
+		"_Deployments",
+		"deployService",
+		[Orbs.argString(contractName), Orbs.argUint32(1), Orbs.argBytes(code)]
+	);
+	return await client.sendTransaction(tx);
+}
+
+async function setupContract(client, contractName) {
+	const acc = Orbs.createAccount();
+	const bookIndex = new BookIndex(acc, client, contractName);
+	const deployResp = await deploy(
+		client,
+		acc,
+		getContractCode("bookIndex.go"),
+		bookIndex.name
+	);
+	return [bookIndex, deployResp];
+}
+
 module.exports = {
-	BookIndex
+	BookIndex,
+	setupContract
 };
