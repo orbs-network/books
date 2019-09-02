@@ -12,12 +12,14 @@ const client = new Orbs.Client(
 );
 
 async function registerBooks(books) {
+	const [bookIndex, _] = await setupContract(client, "Gilda")
+	
 	// register to smart contract and dynamodb as well
 	const receipt = await bookIndex.registerBooks(books);
 
 	for (i = 0; i < receipt.length; i++) {
 		// register to dynamodb
-		dynamo.uploadBook(receipt[i], books[i].Title);
+		dynamo.uploadBooks(receipt[i], books[i].Title, books[i].Author);
 	}
 }
 

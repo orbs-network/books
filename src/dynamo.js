@@ -10,12 +10,12 @@ AWS.config.update({ credentials: cred });
 var ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
 // upload a new book to dynamodb
-async function uploadBook(id, title) {
+async function uploadBooks(id, title, author) {
 	item = {
 		TableName: "BookRegistry",
-		Item: { Id: id, Title: title }
+		Item: { Id: id, Title: title, Author: author}
 	};
-
+	
 	await ddb.put(item, (err, _) => {
 		if (err) {
 			console.log(err);
@@ -24,26 +24,55 @@ async function uploadBook(id, title) {
 }
 
 // scan for the books with title in dynamo db
-function searchBook(title, callback) {
-	var params = {
+function searchBook(params, callback, ...args) {
+	var paramsBoth = {
 		TableName: "BookRegistry",
 		ExpressionAttributeValues: {
-			":t": title
+			":t": params.title,
+			":a": params.author
+		},
+		FilterExpression: "contains (Title, :t) AND contains (Author, :a)",
+		ProjectionExpression: "Id, Title, Author"
+	};
+	
+	var paramsAuthor = {
+		TableName: "BookRegistry",
+		ExpressionAttributeValues: {
+			":a": params.author
+		},
+		FilterExpression: "contains (Author, :a)",
+		ProjectionExpression: "Id, Title, Author"
+	};
+	
+	var paramsTitle = {
+		TableName: "BookRegistry",
+		ExpressionAttributeValues: {
+			":t": params.title,
 		},
 		FilterExpression: "contains (Title, :t)",
-		ProjectionExpression: "Id, Title"
+		ProjectionExpression: "Id, Title, Author"
 	};
-
-	ddb.scan(params, (err, data) => {
+	
+	if((params.title != "" && params.title != undefined) && (params.author != "" && params.author != undefined)){
+		filter = paramsBoth
+	}else if(params.title != "" && params.title != undefined){
+		filter = paramsTitle
+	}else if(params.author != "" && params.author != undefined){
+		filter = paramsAuthor
+	}else{
+		return
+	}
+	
+	ddb.scan(filter, (err, data) => {
 		if (err) {
 			console.log(err);
 		} else {
-			callback(data);
+			callback(data, args);
 		}
 	});
 }
 
 module.exports = {
-	uploadBook,
+	uploadBooks,
 	searchBook
 };

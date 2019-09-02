@@ -1,0 +1,21 @@
+<DOCTYPE html>
+<html>
+	<head>
+		<title>Orbs Books Registry</title>
+	</head>
+	<body>
+		<p>This is the body</p>
+		<p>Title</p>
+		<input type="author" id="author">
+		<p>Author</p>
+		<input type="title" id="title">
+		<button onclick="window.location.href = 'search?author=' + document.getElementById('author').value + '&title=' + document.getElementById('title').value">Press Me to search for a book</button>
+	</body>
+	<script>
+		window.onload = function(){
+			document.getElementById("title").value = ""
+			document.getElementById("author").value = ""
+		}
+	</script>
+</html>
+<!-- TODO stylize -->
