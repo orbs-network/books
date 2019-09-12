@@ -273,6 +273,24 @@ class BookIndex {
 
 		return Number(result.outputArguments[0].value);
 	}
+
+	async lastId() {
+		const [tx, txId] = this.client.createTransaction(
+			this.account.publicKey,
+			this.account.privateKey,
+			this.name,
+			"lastId",
+			[]
+		);
+
+		const result = await this.client.sendTransaction(tx);
+
+		if (result.executionResult != "SUCCESS") {
+			return new Error(result.outputArguments[0].value);
+		}
+
+		return Number(result.outputArguments[0].value);
+	}
 }
 
 function getContractCode(contractName) {

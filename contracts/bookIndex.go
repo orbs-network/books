@@ -37,6 +37,7 @@ type book struct {
 var PUBLIC = sdk.Export(registerBooks,
 						getBooks,
 						totalBooks,
+						lastId,
 						getOwner,
 						changeOwner,
 						addCurator,
@@ -89,6 +90,11 @@ func removeCurator(curator []byte){
 // returns the number of books in the registry, it is also the counter
 func totalBooks() uint64 {
 	return _getCounter() - _getRemoved()
+}
+
+// returns the last book Id
+func lastId() uint64 {
+	return _getCounter()
 }
 
 // register multiple books to the contract's storage
