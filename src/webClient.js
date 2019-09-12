@@ -73,7 +73,7 @@ async function displayBook(bookId){
 				`
 			}
 	ret +=  `
-			<p>Regisrty ID: ${bookId}</p>
+			<p>Registry ID: ${bookId}</p>
 		</div>
 		<style>
 			a {
