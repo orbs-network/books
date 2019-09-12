@@ -17,13 +17,6 @@ async function registerBooks(books) {
 	bookIndex = new BookIndex(Orbs.createAccount(), client, "BookDemo01")
 
 	const lastId = await bookIndex.lastId()
-	
-	// TODO only for testing
-	// if max id is more or equal to book length do nothing
-	if(books.length <= lastId){
-		console.log("no reason to update!")
-		return
-	}
 
 	// register to smart contract and dynamodb as well
 	const receipt = await bookIndex.registerBooks(books);
@@ -59,11 +52,15 @@ async function getBookBatch(dirPath, start, limit, callback){
 	})
 }
 
-getBookBatch("/Users/gil/Downloads/gutenberg/", 100, 100, registerBooks)
+getBookBatch("/Users/gil/Downloads/gutenberg/", 602, 400, registerBooks)
 
 
 // log of BookDemo01
 // gutenberg 100,100
+// gutenberg 101,200
+// gutenberg 302,300
+// gutenberg 602,400
+
 module.exports = {
 	registerBooks
 };
