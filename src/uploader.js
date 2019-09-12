@@ -34,34 +34,31 @@ async function registerBooks(books) {
 	}
 }
 
-books = [JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9164.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/8914.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9086.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/913.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/909.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9025.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58706.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58700.json")),
-		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58701.json")),		
-		]
+// exclude = [JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9164.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/8914.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9086.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/913.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/909.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9025.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58706.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58700.json")),
+// 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58701.json")),		
+// 		]
 
-async function getBookBatch(dirPath, start, limit){
-	var ret = []
-
-	await fs.readdir(dirPath, (err, files) => {
+async function getBookBatch(dirPath, start, limit, callback){
+	await fs.readdir(dirPath, async (err, files) => {
 		if(err){
 			console.log(err)
 		}else{
 			for(i = start; i < start + limit; i++){
 				books.push(JSON.parse(fs.readFileSync(dirPath + files[i])))
 			}
+			callback(books)
 		}
 	})
-
-	return ret
 }
 
-registerBooks(books)
+getBookBatch("/Users/gil/Downloads/gutenberg/", 100, 100, registerBooks)
 
 module.exports = {
 	registerBooks
