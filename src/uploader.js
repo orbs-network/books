@@ -46,6 +46,7 @@ async function registerBooks(books) {
 // 		]
 
 async function getBookBatch(dirPath, start, limit, callback){
+	books = []
 	await fs.readdir(dirPath, async (err, files) => {
 		if(err){
 			console.log(err)
@@ -60,6 +61,9 @@ async function getBookBatch(dirPath, start, limit, callback){
 
 getBookBatch("/Users/gil/Downloads/gutenberg/", 100, 100, registerBooks)
 
+
+// log of BookDemo01
+// gutenberg 100,100
 module.exports = {
 	registerBooks
 };
