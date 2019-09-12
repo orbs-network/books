@@ -12,7 +12,7 @@ const client = new Orbs.Client(
 );
 
 async function registerBooks(books) {
-	const [bookIndex, _] = await setupContract(client, "Gilda")
+	const [bookIndex, _] = await setupContract(client, "BookDemo v0.0")
 
 	const lastId = await bookIndex.lastId()
 	
@@ -28,7 +28,7 @@ async function registerBooks(books) {
 
 	for (i = 0; i < receipt.length; i++) {
 		// register to dynamodb
-		dynamo.uploadBooks(receipt[i], books[i].Title, books[i].Author, books[i].Issued, books[i].Publishers[0].Name);
+		await dynamo.uploadBooks(receipt[i], books[i].Title, books[i].Author, books[i].Issued, books[i].Publishers[0].Name);
 	}
 }
 
@@ -42,7 +42,24 @@ books = [JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9164.json"))
 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58700.json")),
 		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58701.json")),		
 		]
-registerBooks(books)
+
+async function getBookBatch(dirPath, start, limit){
+	var ret = []
+
+	await fs.readdir(dirPath, (err, files) => {
+		if(err){
+			console.log(err)
+		}else{
+			for(i = start; i < start + limit; i++){
+				books.push(JSON.parse(fs.readFileSync(dirPath + files[i])))
+			}
+		}
+	})
+
+	return ret
+}
+
+//registerBooks(books)
 
 module.exports = {
 	registerBooks

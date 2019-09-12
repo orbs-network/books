@@ -1,3 +1,10 @@
+// TODO demonet
+// node js server on a server with a url
+// contract on demonet
+// upload 6000 books with uploader.js
+// connect webClient to smart-contract on demonet
+// TODO erase dynamodb
+
 const http = require("http");
 const fs = require("fs")
 const url = require("url")
