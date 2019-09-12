@@ -10,10 +10,10 @@ AWS.config.update({ credentials: cred });
 var ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
 // upload a new book to dynamodb
-async function uploadBooks(id, title, author) {
+async function uploadBooks(id, title, author, issued, publisher) {
 	item = {
 		TableName: "BookRegistry",
-		Item: { Id: id, Title: title, Author: author}
+		Item: { Id: id, Title: title, Author: author, Issued: issued, Publisher: publisher}
 	};
 	
 	await ddb.put(item, (err, _) => {
@@ -32,7 +32,7 @@ function searchBook(params, callback, ...args) {
 			":a": params.author
 		},
 		FilterExpression: "contains (Title, :t) AND contains (Author, :a)",
-		ProjectionExpression: "Id, Title, Author"
+		ProjectionExpression: "Id, Title, Author, Issued, Publisher"
 	};
 	
 	var paramsAuthor = {
@@ -41,7 +41,7 @@ function searchBook(params, callback, ...args) {
 			":a": params.author
 		},
 		FilterExpression: "contains (Author, :a)",
-		ProjectionExpression: "Id, Title, Author"
+		ProjectionExpression: "Id, Title, Author, Issued, Publisher"
 	};
 	
 	var paramsTitle = {
@@ -50,7 +50,7 @@ function searchBook(params, callback, ...args) {
 			":t": params.title,
 		},
 		FilterExpression: "contains (Title, :t)",
-		ProjectionExpression: "Id, Title, Author"
+		ProjectionExpression: "Id, Title, Author, Issued, Publisher"
 	};
 	
 	if((params.title != "" && params.title != undefined) && (params.author != "" && params.author != undefined)){

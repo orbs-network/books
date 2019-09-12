@@ -13,15 +13,36 @@ const client = new Orbs.Client(
 
 async function registerBooks(books) {
 	const [bookIndex, _] = await setupContract(client, "Gilda")
+
+	const lastId = await bookIndex.lastId()
 	
+	// TODO only for testing
+	// if max id is more or equal to book length do nothing
+	if(books.length <= lastId){
+		console.log("no reason to update!")
+		return
+	}
+
 	// register to smart contract and dynamodb as well
 	const receipt = await bookIndex.registerBooks(books);
 
 	for (i = 0; i < receipt.length; i++) {
 		// register to dynamodb
-		dynamo.uploadBooks(receipt[i], books[i].Title, books[i].Author);
+		dynamo.uploadBooks(receipt[i], books[i].Title, books[i].Author, books[i].Issued, books[i].Publishers[0].Name);
 	}
 }
+
+books = [JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9164.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/8914.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9086.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/913.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/909.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/9025.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58706.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58700.json")),
+		 JSON.parse(fs.readFileSync("/Users/gil/Downloads/gutenberg/58701.json")),		
+		]
+registerBooks(books)
 
 module.exports = {
 	registerBooks
