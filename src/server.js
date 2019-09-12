@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs")
 const url = require("url")
 const dynamo = require("./dynamo")
+const port = process.env.PORT || 5050;
 
 http.createServer(async (req, res) => {
 	webUrl = url.parse(req.url)
@@ -36,7 +37,7 @@ http.createServer(async (req, res) => {
 	}else{
 		res.end()
 	}
-}).listen(5050)
+}).listen(port);
 
 function getParams(query){
 	if(!query) return null
