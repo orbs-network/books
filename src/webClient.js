@@ -41,7 +41,6 @@ async function getBook(id){
 
 async function displayBook(bookId){
 	book = await getBook(bookId)
-	console.log(book)
 
 	// YES YES POSSIBLE XSS attack if someone publishes to smart contract <scriptbook>
 	ret = `
