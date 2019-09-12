@@ -12,7 +12,9 @@ const client = new Orbs.Client(
 );
 
 async function registerBooks(books) {
-	const [bookIndex, _] = await setupContract(client, "BookDemo v0.0")
+	//const [bookIndex, _] = await setupContract(client, "BookDemo v0.0")
+	
+	bookIndex = new BookIndex(Orbs.createAccount(), client, "BookDemo v0.0")
 
 	const lastId = await bookIndex.lastId()
 	
@@ -59,7 +61,7 @@ async function getBookBatch(dirPath, start, limit){
 	return ret
 }
 
-//registerBooks(books)
+registerBooks(books)
 
 module.exports = {
 	registerBooks

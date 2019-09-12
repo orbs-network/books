@@ -284,7 +284,8 @@ class BookIndex {
 		);
 
 		const result = await this.client.sendTransaction(tx);
-
+		console.log(result)
+		console.log(this.name)
 		if (result.executionResult != "SUCCESS") {
 			return new Error(result.outputArguments[0].value);
 		}
