@@ -3,8 +3,8 @@ const fs = require("fs");
 const bookIndex = require("./bookIndex");
 
 AWS.config.region = "us-east-2";
-var cred = new AWS.SharedIniFileCredentials({ profile: "default" });
-AWS.config.update({ credentials: cred });
+//var cred = new AWS.SharedIniFileCredentials({ profile: "default" });
+//AWS.config.update({ credentials: cred });
 
 // Create the DynamoDB service object
 var ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
