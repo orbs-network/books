@@ -1,6 +1,5 @@
 const Orbs = require("orbs-client-sdk");
 const fs = require("fs");
-const uploader = require("./src/uploader");
 
 const endpoint = process.env.ORBS_NODE_ADDRESS || "http://localhost:8080";
 const chain = Number(process.env.ORBS_VCHAIN) || 42;
