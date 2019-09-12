@@ -12,9 +12,9 @@ const client = new Orbs.Client(
 );
 
 async function registerBooks(books) {
-	//const [bookIndex, _] = await setupContract(client, "BookDemo v0.0")
+	//const [bookIndex, _] = await setupContract(client, "BookDemo01")
 	
-	bookIndex = new BookIndex(Orbs.createAccount(), client, "BookDemo00")
+	bookIndex = new BookIndex(Orbs.createAccount(), client, "BookDemo01")
 
 	const lastId = await bookIndex.lastId()
 	
