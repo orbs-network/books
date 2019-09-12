@@ -1,7 +1,7 @@
 var client = {}
 var account = {}
-ORBS_NODE_ADDRESS = undefined
-ORBS_VCHAIN = undefined
+ORBS_NODE_ADDRESS = "https://node1.demonet.orbs.com/vchains/1000"
+ORBS_VCHAIN = 1000
 
 function init(){
 	const endpoint = ORBS_NODE_ADDRESS || "http://localhost:8080";
