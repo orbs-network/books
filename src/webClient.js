@@ -18,7 +18,7 @@ async function getBook(id){
 	const [tx, _] = client.createTransaction(
 		account.publicKey,
 		account.privateKey,
-		"BookDemo v0.0",
+		"BookDemo00",
 		"getBooks",
 		[Orbs.argUint64(id), Orbs.argUint64(1)]
 	);
