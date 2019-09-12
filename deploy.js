@@ -29,7 +29,7 @@ async function setupContract() {
 	const deployResp = await deploy(
 		acc,
 		getContractCode("bookIndex.go"),
-		"BookDemo v0.0"
+		"BookDemo00"
 	);
 
 	return deployResp;
